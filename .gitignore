@@ -181,8 +181,8 @@ data
 .vscode
 .git
 
-# Personal folder
-jihoon
+# Personal files/folder
+credential.json
 
 # WandB
 wandb/
