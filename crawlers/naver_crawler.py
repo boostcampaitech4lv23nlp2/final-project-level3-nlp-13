@@ -37,21 +37,26 @@ class NaverCrawler:
     def read_news(self, url: str) -> dict:
         res = req.get(url)
         if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            title = soup.select_one("h2", {"class": "end_tit"}).text.strip()
-            body = soup.select_one("div.article_body").text.strip()  # class: article_body
-            written_at = soup.select_one("span > em").text.strip()
-            writer = soup.select_one("p.byline_p > span").text.strip()
-            publisher = soup.select_one("div.press_logo").img["alt"]
+            try:
+                soup = BeautifulSoup(res.text, "html.parser")
+                title = soup.select_one("h2", {"class": "end_tit"}).text.strip()
+                body = soup.select_one("div.article_body").text.strip()  # class: article_body
+                written_at = soup.select_one("span > em").text.strip()
+                writer = soup.select_one("p.byline_p > span").text.strip()
+                publisher = soup.select_one("div.press_logo").img["alt"]
 
-            time.sleep(random.randrange(3))
-            return {
-                "title": title,
-                "body": body,
-                "written_at": written_at,
-                "writer": writer,
-                "publisher": publisher,
-            }  # TO-DO: class or namedtupel for news results
+                time.sleep(random.randrange(3))
+                return {
+                    "title": title,
+                    "body": body,
+                    "written_at": written_at,
+                    "writer": writer,
+                    "publisher": publisher,
+                }  # TO-DO: class or namedtupel for news results
+            except:
+                print("*****************************")
+                print(f"failed to parse {url}")
+                return None
         else:
             raise Exception(f"Response failed. Code: {res.status_code}")
 
@@ -66,14 +71,15 @@ class NaverCrawler:
         }
         for idx in trange(len(urls)):
             news = self.read_news(urls[idx])
-            print(news)
-            item = {"id": f"naver_{query}_{idx}"}.update(news)
-            output["data"].append(item)
+            if news:
+                print(news)
+                item = {"id": f"naver_{query}_{idx}"}.update(news)
+                output["data"].append(item)
 
         print(f"Crawled {len(output['data'])} articles from the given query '{query}'")  # TO-DO: change to logger
         self.save(query=query, run_time=self.runtime, data=output)
 
     def save(self, query: str, run_time: str, data: dict) -> None:
-        with open(f"{self.save_path}_{query}_{run_time}.pickle", "wb"):
-            pickle.dump(data)
+        with open(f"{self.save_path}_{query}_{run_time}.pickle", "wb") as f:
+            pickle.dump(data, f)
             print(f"Saved to {self.save_path}")
