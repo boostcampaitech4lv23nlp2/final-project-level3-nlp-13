@@ -1,5 +1,7 @@
+import pickle
 import random
 import time
+from typing import List, Union
 
 import requests as req
 from bs4 import BeautifulSoup
@@ -12,7 +14,7 @@ class NaverCrawler:
     def __init__(self, headers):
         self._headers = headers
 
-    def get_news_urls(self, query="bts", start=1, display=100) -> list:
+    def get_news_urls(self, query="bts", start=1, display=100) -> List:
         """
         네이버 검색 API를 사용하여 query 기사들 link 추출
         """
@@ -49,9 +51,11 @@ class NaverCrawler:
         else:
             raise Exception(f"Response failed. Code: {res.status_code}")
 
-    def __call__(self, query, n):
+    def __call__(self, query, n) -> List[dict]:
         urls = self.get_news_urls(query=query, display=n)
         news = [self.read_news(url) for url in urls]
-        # news = self.read_news(urls[0])
 
         return news
+
+    def save(self):
+        pass
