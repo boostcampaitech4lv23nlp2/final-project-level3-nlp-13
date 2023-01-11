@@ -1,18 +1,25 @@
 import pickle
 import random
+import re 
 import time
 from typing import List, Union
 
 import requests as req
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 from tqdm import trange
 
 
 class NaverCrawler:
     def __init__(self, headers: str, runtime: str):
+        headers = {
+    "X-Naver-Client-Id": "LFDIwR9DMgVRcfm0fCSh",
+    "X-Naver-Client-Secret": "4yvFIBoLrh"
+    }
         self._headers = headers
         self.save_path = "data/raw_data/naver"
         self.runtime = runtime
+        self.driver = webdriver.Chrome() # or webdriver.Chrome()
 
     def get_news_urls(self, query="bts", start=1, display=100) -> List:
         """
@@ -32,19 +39,15 @@ class NaverCrawler:
         return urls
 
     def read_news(self, url: str) -> dict:
-        res = req.get(url)
-        if res.status_code == 200:
-            try:
-                soup = BeautifulSoup(res.text, "html.parser")
-                news_type = "entertain" if "entertain" in url else "news"
-                parsed_soup = self.parse_soup(soup, news_type)            
-                time.sleep(random.randrange(3))
-                return parsed_soup # TO-DO: class or namedtupel for news results
-            except:
-                print(f"failed to parse {url}")
-                return None
-        else:
-            raise Exception(f"Response failed. Code: {res.status_code}")
+        try:
+            self.driver.get(url)
+            news_type = "entertain" if "entertain" in url else "news"
+            parsed = self.parse(news_type)            
+            time.sleep(3.2)
+            return parsed # TO-DO: class or namedtupel for news results
+        except:
+            print(f"failed to parse {url}")
+            return None
 
     def __call__(self, query, n) -> None:
         urls = self.get_news_urls(query=query, display=n)
@@ -56,42 +59,51 @@ class NaverCrawler:
             "data": [],
         }
         for idx in trange(len(urls)):
-            news = self.read_news(urls[idx])
+            url = urls[idx]
+            news = self.read_news(url)
             if news is not None:
-                item = {"id": f"naver_{query}_{idx}"}
+                item = {"id": f"naver_{query}_{idx}", "url": url}
                 item.update(news)
                 output["data"].append(item)
 
         print(f"Crawled {len(output['data'])} articles from the given query '{query}'")  # TO-DO: change to logger
         self.save(query=query, run_time=self.runtime, data=output)
 
-    def parse_soup(self, soup, type) -> dict:
+    def parse(self, type) -> dict:
         """
         기사의 type(뉴스 또는 연예뉴스)에 따라 다른 tag을 갖고 있기 때문에 달리 parse
         """
+        by = By.CSS_SELECTOR
         if type == "entertain":
-            title = soup.select_one("h2", {"class": "end_tit"}).text.strip()
-            body = soup.select_one("div.article_body").text.strip()  # class: article_body
-            written_at = soup.select_one("span > em").text.strip()
-            writer = soup.select_one("p.byline_p > span").text.strip()
-            publisher = soup.select_one("div.press_logo").img["alt"]
+            title = self.driver.find_element(by, "h2.end_tit").text.strip()
+            body = self.driver.find_element(by, "div.article_body").text.strip()  # class: article_body
+            img_captions = [cap.text.strip() for cap in self.driver.find_elements(by, "em.img_desc")]
+            written_at = self.driver.find_element(by, "span > em").text.strip()
+            writer = self.driver.find_element(by, "p.byline_p > span").text.strip()
+            # publisher = self.driver.find_element(by, "div.press_logo").img["alt"]
 
-        elif type == "news": 
-            title = soup.select_one("h2.media_end_head_headline").text.strip()
-            body = soup.select_one("div._article_body > div._article_content").text.strip()  # class: article_body
-            written_at = soup.select_one("span._ARTICLE_DATE_TIME").text.strip()
-            writer = soup.select_one("em.media_end_head_journalist_name").text.strip()
-            publisher = soup.select_one("img.media_end_head_top_logo_img").img["alt"]
-        
+        elif type == "news":
+            title = self.driver.find_element(by, "h2.media_end_head_headline").text.strip()
+            body = self.driver.find_element(by, "div._article_content").text.strip()
+            img_captions = [cap.text.strip() for cap in self.driver.find_elements(by, "em.img_desc")]
+            written_at = self.driver.find_element(by, "span._ARTICLE_DATE_TIME").text.strip()
+            writer = self.driver.find_element(by, "em.media_end_head_journalist_name").text.strip()
+            # publisher = self.driver.find_element(by, "img.media_end_head_top_log_img").get_attribute("alt") # 안됨
+
+        body = self.remove_caption(body, img_captions)
         parsed = {
             "title": title,
             "body": body,
             "written_at": written_at,
             "writer": writer,
-            "publisher": publisher,
         }
-
         return parsed
+
+    def remove_caption(self, text:str, captions:List) -> str:
+        for caption in captions:
+            pattern = re.compile(caption)
+            text = re.sub(pattern, "", text)
+        return text
 
     def save(self, query: str, run_time: str, data: dict) -> None:
         with open(f"{self.save_path}_{query}_{run_time}.pickle", "wb") as f:
