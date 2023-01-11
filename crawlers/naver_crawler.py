@@ -73,7 +73,8 @@ class NaverCrawler:
             news = self.read_news(urls[idx])
             if news:
                 print(news)
-                item = {"id": f"naver_{query}_{idx}"}.update(news)
+                item = {"id": f"naver_{query}_{idx}"}
+                item.update(news)
                 output["data"].append(item)
 
         print(f"Crawled {len(output['data'])} articles from the given query '{query}'")  # TO-DO: change to logger
