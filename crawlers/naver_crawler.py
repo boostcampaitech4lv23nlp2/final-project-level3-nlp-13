@@ -1,3 +1,4 @@
+import random
 import time
 
 import requests as req
@@ -37,7 +38,7 @@ class NaverCrawler:
             writer = soup.select_one("p.byline_p > span").text.strip()
             publisher = soup.select_one("div.press_logo").img["alt"]
 
-            time.sleep(2.1)
+            time.sleep(random.randrange(3))
             return {
                 "title": title,
                 "body": body,
@@ -50,7 +51,7 @@ class NaverCrawler:
 
     def __call__(self, query, n):
         urls = self.get_news_urls(query=query, display=n)
-        # news = [self.read_news(url) for url in urls]
-        news = self.read_news(urls[0])
+        news = [self.read_news(url) for url in urls]
+        # news = self.read_news(urls[0])
 
         return news
