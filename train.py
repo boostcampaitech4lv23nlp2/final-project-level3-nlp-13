@@ -1,14 +1,15 @@
-import torch
 import argparse
 import random
+
 import numpy as np
 import pandas as pd
-from data_loader.data_loaders import ChatDataset
-from tokenizers import SentencePieceBPETokenizer
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from transformers import AdamW, GPT2LMHeadModel, PreTrainedTokenizerFast
+import torch
+from data_loader.data_loaders import ChatDataset, GPTDataset
 from omegaconf import OmegaConf
+from tqdm import tqdm
+from transformers import AdamW, DataCollatorForLanguageModeling, GPT2LMHeadModel, PreTrainedTokenizerFast, Trainer, TrainingArguments
+from utils.util import Chatbot_utils
+
 
 def main(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -16,57 +17,64 @@ def main(config):
 
     print("🔥 get dataset...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-    config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
-)
-    train_dataset = ChatDataset(tokenizer=tokenizer, file_path= config.path.train_path)
-    data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-    
+        config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+    )
+    train_dataset = GPTDataset(tokenizer=tokenizer, file_path=config.path.train_path)
+
     print("🔥 get model...")
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(
-    config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
-)
     model = GPT2LMHeadModel.from_pretrained(config.model.name)
     model.to("cuda")
 
+    data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
+
     print("🔥 start training...")
-    # get function handles of loss and metrics
-    optimizer = AdamW(model.parameters(), lr=config.train.learning_rate, correct_bias=True)
-    epochs = config.train.max_epoch
-    avg_loss = (0.0, 0.0)
+    args = TrainingArguments(
+        output_dir="ex_kogpt2",
+        per_device_train_batch_size=32,
+        per_device_eval_batch_size=32,
+        evaluation_strategy="steps",
+        eval_steps=5_000,
+        logging_steps=5_000,
+        gradient_accumulation_steps=8,
+        num_train_epochs=config.train.max_epoch,
+        weight_decay=0.1,
+        warmup_steps=1_000,
+        lr_scheduler_type="cosine",
+        learning_rate=5e-5,
+        save_steps=5_000,
+        fp16=True,
+        push_to_hub=False,
+    )
 
-    for epoch in range(epochs):
-    # for epoch in tqdm(range(epochs)):
-        count = 0
-        for data in data_loader:
-            optimizer.zero_grad()
-            # data = data.transpose(1,0)
-            data = data[0].to("cuda")
-            # model = model.to('cuda')
+    trainer = Trainer(
+        model=model,
+        tokenizer=tokenizer,
+        args=args,
+        data_collator=data_collator,
+        train_dataset=train_dataset.tokenized_datasets["train"],
+        # eval_dataset=tokenized_datasets["train"],
+    )
 
-            outputs = model(data, labels=data)
-            loss, logits = outputs[:2]
-            loss = loss.to("cuda")
-            loss.backward()
-            avg_loss = (avg_loss[0] * 0.99 + loss, avg_loss[1] * 0.99 + 1.0)
-            optimizer.step()
-            if count % 200 == 0:
-                print(
-                    "epoch no.{0}  train ({1}/{2})  loss = {3:.5f}  avg_loss = {4:.5f}".format(
-                        epoch, count, len(data_loader), loss, avg_loss[0] / avg_loss[1]
-                    )
-                )
-            count += 1
-    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    torch.save(model.state_dict(), "chitchat_model.bin")
+    trainer.train()
 
-if __name__ == '__main__':
+    """ inference 부분으로 넣으면 될듯"""
+    gen = Chatbot_utils(tokenizer, model)
+    gen.get_answer("안녕?")
+    gen.get_answer("만나서 반가워.")
+    gen.get_answer("인공지능의 미래에 대해 어떻게 생각하세요?")
+    gen.get_answer("여자친구 선물 추천해줘.")
+    gen.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?")
+    gen.get_answer("이제 그만 수업 끝내자.")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--config", "-c", type=str, default="base_config")
 
     args, _ = parser.parse_known_args()
     config = OmegaConf.load(f"./config/{args.config}.yaml")
-    
+
     # fix random seeds for reproducibility
     SEED = 123
     torch.manual_seed(SEED)
