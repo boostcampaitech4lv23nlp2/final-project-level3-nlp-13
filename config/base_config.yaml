@@ -9,7 +9,7 @@ dataloader:
   architecture: BaseDataloader
 
 model:
-  retrieval_name: klue/bert-base
+  name: skt/kogpt2-base-v2
   architecture: BaseModel
 
 tokenizer:
