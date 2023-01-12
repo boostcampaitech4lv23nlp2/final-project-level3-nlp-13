@@ -41,7 +41,6 @@ if __name__ == "__main__":
         type=int,
         help="the number of news articles to retrieve for the query",
     )
-
     ### twitter crawling args ###
     parser.add_argument(
         "--screen_name",
@@ -50,4 +49,8 @@ if __name__ == "__main__":
         help="screen name of the twitter user to crawl",
     )
     args, _ = parser.parse_known_args()
+    
+    if args.crawler == "naver":
+        assert args.num <= 100, "The maximum 'num for NaverCrawler is 100"
+
     main(args)

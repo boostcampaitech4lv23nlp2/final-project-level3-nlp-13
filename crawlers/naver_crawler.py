@@ -44,7 +44,7 @@ class NaverCrawler:
 
         return urls
 
-    def read_news(self, url: str) -> dict:
+    def read_news(self, url: str) -> Union[dict, None]:
         try:
             self.driver.get(url)
             self.driver.implicitly_wait(10)
@@ -84,27 +84,33 @@ class NaverCrawler:
             # entertain news
             title = self.driver.find_element(by, "h2.end_tit").text.strip()
             body = self.driver.find_element(by, "div.article_body").text.strip()  # class: article_body
-            try:
-                img_captions = [cap.text.strip() for cap in self.driver.find_elements(by, "em.img_desc")]
-            except: 
-                img_captions = []
-            # written_at = self.driver.find_element(by, "span > em").text.strip()
+            if caps:= self.driver.find_elements(by, "em.img_desc"):
+                img_captions = [cap.text.strip() for cap in caps]
+            written_at = self.driver.find_element(by, "span > em").text.strip()
+            writer = self.driver.find_element(by, "p.byline_p > span").text.strip()
 
         except:
             # news
             title = self.driver.find_element(by, "h2.media_end_head_headline").text.strip()
             body = self.driver.find_element(by, "div._article_content").text.strip()
-            try:
-                img_captions = [cap.text.strip() for cap in self.driver.find_elements(by, "em.img_desc")]
-            except:
-                img_captions = []
+            if caps:= self.driver.find_elements(by, "em.img_desc"):
+                img_captions = [cap.text.strip() for cap in caps]
+            written_at = self.driver.find_element(by, "span._ARTICLE_DATE_TIME").text.strip()
+            writer = self.driver.find_element(by, "em.media_end_head_journalist_name").text.strip()
 
-        body = self.remove_caption(body, img_captions)
         parsed = {
             "title": title,
             "body": body,
+            "written_at": written_at,
+            "writer": writer,
+            "caption": img_captions,
         }
         return parsed
+
+    def preprocess(self, title, body, img_captions, written_at, writer):
+        body = self.remove_caption(body, img_captions)
+
+        return title, body, written_at, writer
 
     def remove_caption(self, text:str, captions:List) -> str:
         """
