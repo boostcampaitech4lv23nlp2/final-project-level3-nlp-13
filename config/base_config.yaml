@@ -1,6 +1,6 @@
 path:
-  train_path: "/opt/ml/dev/data/ChatbotData.csv"
-  test_path: "/opt/ml/dev/data/ChatbotData.csv"
+  train_path: "./data/ChatbotData.csv"
+  test_path: "./data/ChatbotData.csv"
   resume_path: # checkpoint path for resuming training
 
 dataloader:
