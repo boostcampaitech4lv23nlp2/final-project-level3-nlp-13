@@ -16,22 +16,22 @@ def main(config):
 
     print("🔥 get dataset...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-    "skt/kogpt2-base-v2", bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+    config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
 )
-    train_dataset = ChatDataset(tokenizer=tokenizer, file_path="data/ChatbotData.csv")
+    train_dataset = ChatDataset(tokenizer=tokenizer, file_path= config.path.train_path)
     data_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
     
     print("🔥 get model...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-    "skt/kogpt2-base-v2", bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+    config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
 )
-    model = GPT2LMHeadModel.from_pretrained("skt/kogpt2-base-v2")
+    model = GPT2LMHeadModel.from_pretrained(config.model.name)
     model.to("cuda")
 
     print("🔥 start training...")
     # get function handles of loss and metrics
-    optimizer = AdamW(model.parameters(), lr=1e-4, correct_bias=True)
-    epochs = 2
+    optimizer = AdamW(model.parameters(), lr=config.train.learning_rate, correct_bias=True)
+    epochs = config.train.max_epoch
     avg_loss = (0.0, 0.0)
 
     for epoch in range(epochs):
