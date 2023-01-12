@@ -52,6 +52,6 @@ ensemble:
 wandb:
   use: False
   team_account_name: next-level-potato # 팀 계정
-  project_repo: Chatbot  # 프로젝트 레포 이름
-  name: lja # 실험자 명
+  project_repo:  # 프로젝트 레포 이름
+  name:  # 실험자 명
   info:  # 실험명
