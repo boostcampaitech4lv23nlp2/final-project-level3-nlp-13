@@ -40,15 +40,14 @@ class GPTDataset:
         raw_datasets = DatasetDict(
             {
                 "train": Dataset(pa.Table.from_pandas(raw_data)),  # .shuffle().select(range(50000)),
-                # "valid": ds_valid.shuffle().select(range(200)),  # .shuffle().select(range(500))
+                "valid": Dataset(pa.Table.from_pandas(raw_data)),  # .shuffle().select(range(50000)),
             }
         )
         return raw_datasets
 
     def tokenize(self, element):
         outputs = self.tokenizer(
-            element["Q"],
-            element["A"],
+            list(pd.DataFrame({"Q": element["Q"], "A": element["A"]}).apply(lambda x: "</s>" + x["Q"] + "<sep>" + x["A"] + "</s>", axis=1)),
             truncation=True,
             padding="max_length",
             max_length=self.max_len,
