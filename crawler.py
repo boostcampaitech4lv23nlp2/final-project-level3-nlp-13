@@ -1,20 +1,23 @@
 import argparse
 import datetime
-
 import pytz
+
 from crawlers.naver_crawler import NaverCrawler
-from credentials import naver_account as headers
+from crawlers.twitter_crawler import TwitterCrawler
 
 
 def main(args):
     runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
+
     if args.crawler == "naver":
         query = args.query
-        headers.update(
-            {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"}
-        )
-        crawler = NaverCrawler(headers, runtime=runtime)
-        crawler(query=query, n=args.num)
+        naver_crawler = NaverCrawler(runtime=runtime)
+        naver_crawler(query=query, n=args.num)
+
+    elif args.crawler == "twitter":
+        screen_name = args.screen_name
+        twitter_crawler = TwitterCrawler()
+        twitter_crawler(screen_name=args.screen_name)
 
 
 if __name__ == "__main__":
@@ -37,6 +40,14 @@ if __name__ == "__main__":
         default=100,
         type=int,
         help="the number of news articles to retrieve for the query",
+    )
+
+    ### twitter crawling args ###
+    parser.add_argument(
+        "--screen_name",
+        "-s",
+        type=str,
+        help="screen name of the twitter user to crawl",
     )
     args, _ = parser.parse_known_args()
     main(args)

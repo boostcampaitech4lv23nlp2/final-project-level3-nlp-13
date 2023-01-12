@@ -1,5 +1,5 @@
 import pickle
-import random
+import os
 import re 
 import time
 from typing import List, Union
@@ -8,18 +8,24 @@ import requests as req
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from tqdm import trange
+from dotenv import load_dotenv
+
+load_dotenv()
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
 
 
 class NaverCrawler:
-    def __init__(self, headers: str, runtime: str):
-        headers = {
-    "X-Naver-Client-Id": "LFDIwR9DMgVRcfm0fCSh",
-    "X-Naver-Client-Secret": "4yvFIBoLrh"
-    }
-        self._headers = headers
+    def __init__(self, runtime: str):
+        self._headers = {
+            "X-Naver-Client-Id": NAVER_CLIENT_ID,
+            "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
+            # "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+        }
+
         self.save_path = "data/raw_data/naver"
         self.runtime = runtime
-        self.driver = webdriver.Chrome() # or webdriver.Chrome()
+        self.driver = webdriver.Chrome("/opt/ml/chromedriver", webdriver.ChromeOptions())
 
     def get_news_urls(self, query="bts", start=1, display=100) -> List:
         """
@@ -100,6 +106,9 @@ class NaverCrawler:
         return parsed
 
     def remove_caption(self, text:str, captions:List) -> str:
+        """
+        기사 본문 text에 포함된 이미지 caption을 제거함.
+        """
         for caption in captions:
             pattern = re.compile(caption)
             text = re.sub(pattern, "", text)

@@ -196,7 +196,6 @@ model/save_models/
 model.pt
 output.csv
 output_n.csv
-README.md
 
 save_models/
 saved_models/
@@ -205,6 +204,7 @@ config/*
 outputs/
 
 data/*.csv
+data/*.pickle
 prediction/
 best_model/
 klue-roberta-retrained/
