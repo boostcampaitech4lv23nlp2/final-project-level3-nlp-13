@@ -4,6 +4,7 @@ import pytz
 
 from crawlers.naver_crawler import NaverCrawler
 from crawlers.twitter_crawler import TwitterCrawler
+from crawlers.theqoo_crawler import TheqooCrawler
 
 
 def main(args):
@@ -18,6 +19,11 @@ def main(args):
         screen_name = args.screen_name
         twitter_crawler = TwitterCrawler()
         twitter_crawler(screen_name=args.screen_name)
+
+    elif args.crawler == "theqoo":
+        screen_name = args.screen_name
+        theqoo_crawler = TheqooCrawler()
+        theqoo_crawler(n=args.num)
 
 
 if __name__ == "__main__":
