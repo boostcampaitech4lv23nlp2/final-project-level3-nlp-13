@@ -1,14 +1,12 @@
 import argparse
-import random
+import datetime
 
 import numpy as np
-import pandas as pd
+import pytz
 import torch
 from data_loader.data_loaders import ChatDataset, GPTDataset
 from omegaconf import OmegaConf
-from tqdm import tqdm
-from transformers import AdamW, DataCollatorForLanguageModeling, GPT2LMHeadModel, PreTrainedTokenizerFast, Trainer, TrainingArguments
-from utils.util import Chatbot_utils
+from transformers import DataCollatorForLanguageModeling, EarlyStoppingCallback, GPT2LMHeadModel, PreTrainedTokenizerFast, Trainer, TrainingArguments
 
 
 def main(config):
@@ -17,19 +15,23 @@ def main(config):
 
     print("🔥 get dataset...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-        config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+        config.model.name, bos_token="</s>", eos_token="</s>", sep_token="<sep>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
     )
     train_dataset = GPTDataset(tokenizer=tokenizer, file_path=config.path.train_path)
 
     print("🔥 get model...")
     model = GPT2LMHeadModel.from_pretrained(config.model.name)
+    model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
 
     data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
 
     print("🔥 start training...")
+    now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
+    file_name = f"saved_models/{config.model.name}_{now_time}_{config.train.max_epoch}epoch"
+
     args = TrainingArguments(
-        output_dir="ex_kogpt2",
+        output_dir=file_name,
         per_device_train_batch_size=32,
         per_device_eval_batch_size=32,
         evaluation_strategy="steps",
@@ -43,6 +45,7 @@ def main(config):
         learning_rate=5e-5,
         save_steps=5_000,
         fp16=True,
+        load_best_model_at_end=True,
         push_to_hub=False,
     )
 
@@ -53,18 +56,11 @@ def main(config):
         data_collator=data_collator,
         train_dataset=train_dataset.tokenized_datasets["train"],
         # eval_dataset=tokenized_datasets["train"],
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)],
     )
 
     trainer.train()
-
-    """ inference 부분으로 넣으면 될듯"""
-    gen = Chatbot_utils(tokenizer, model)
-    gen.get_answer("안녕?")
-    gen.get_answer("만나서 반가워.")
-    gen.get_answer("인공지능의 미래에 대해 어떻게 생각하세요?")
-    gen.get_answer("여자친구 선물 추천해줘.")
-    gen.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?")
-    gen.get_answer("이제 그만 수업 끝내자.")
+    trainer.save_model(file_name)
 
 
 if __name__ == "__main__":
