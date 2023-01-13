@@ -1,54 +1,32 @@
 import argparse
-import torch
-from tqdm import tqdm
-from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast
-import random
-import numpy as np
-import pandas as pd
-from data_loader.data_loaders import ChatDataset
-from tokenizers import SentencePieceBPETokenizer
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from omegaconf import OmegaConf
 import os
+import random
 
+import numpy as np
+import torch
+from omegaconf import OmegaConf
+from tokenizers import SentencePieceBPETokenizer
+from transformers import AutoModel, AutoTokenizer, GPT2LMHeadModel, PreTrainedTokenizerFast
+from utils.util import Chatbot_utils
 
-def get_answer(input_sent):
-    # encoding
-    text = "<s>" + input_sent + "</s><s>"
-    input_ids = torch.tensor(tokenizer.encode(text)).unsqueeze(0).to("cuda")
-
-    e_s = tokenizer.eos_token_id
-    unk = tokenizer.unk_token_id
-
-    sample_outputs = model.generate(
-        input_ids,
-        num_return_sequences=5,
-        do_sample=True,
-        max_length=128,
-        top_k=50,
-        top_p=0.95,
-        eos_token_id=e_s,
-        early_stopping=True,
-        bad_words_ids=[[unk]],  # 입력한 토큰(unk 토큰)이 생성되지 않도록 피하는 과정이 generate 함수 내에서 이루어짐
-    )
-
-    decoded_result = []
-    for sample in sample_outputs:
-        decoded_result.append(tokenizer.decode(sample)) # decoding
-    for result in decoded_result:
-        print(result)
 
 def main(config):
     print("🔥 get model...")
-    global tokenizer, model
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-    config.model.name, bos_token="</s>", eos_token="</s>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
-)
+        config.model.name, bos_token="</s>", eos_token="</s>", sep_token="<sep>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+    )
     model = GPT2LMHeadModel.from_pretrained(config.model.name)
+    model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
+
     print("🔥 get input...")
-    get_answer("안녕?")
+    generator = Chatbot_utils(tokenizer, model)
+    generator.get_answer("안녕?")
+    generator.get_answer("만나서 반가워.")
+    generator.get_answer("인공지능의 미래에 대해 어떻게 생각하세요?")
+    generator.get_answer("여자친구 선물 추천해줘.")
+    generator.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?")
+    generator.get_answer("이제 그만 수업 끝내자.")
 
 
 if __name__ == "__main__":
