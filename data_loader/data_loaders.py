@@ -2,14 +2,16 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.dataset as ds
 import torch
-from datasets import Dataset, DatasetDict
-
+from datasets import Dataset, DatasetDict,load_dataset
 
 class ChatDataset(torch.utils.data.Dataset):
     def __init__(self, tokenizer, file_path, max_len=128):
         self.tokenizer = tokenizer
         self.max_len = max_len
-        self.data = self.load_data(file_path)
+        try:
+            self.data = self.load_data(file_path)
+        except:
+            self.data = load_dataset(file_path)
 
     def load_data(self, file_path):
         raw_data = pd.read_csv(file_path)
@@ -28,7 +30,10 @@ class GPTDataset:
     def __init__(self, tokenizer, file_path, max_len=128):
         self.tokenizer = tokenizer
         self.max_len = max_len
-        self.raw_datasets = self.load_data(file_path)
+        try:
+            self.raw_datasets = self.load_data(file_path)
+        except:
+            self.raw_datasets = load_dataset(file_path)
         self.tokenized_datasets = self.raw_datasets.map(
             self.tokenize,
             batched=True,

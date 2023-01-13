@@ -1,5 +1,5 @@
 path:
-  train_path: "./data/ChatbotData.csv"
+  train_path: "./data/ChatbotData.csv" #jeongah/chatbot_basic
   test_path: "./data/ChatbotData.csv"
   resume_path: # checkpoint path for resuming training
 
@@ -21,7 +21,7 @@ tokenizer:
   syllable: False
 
 train:
-  max_epoch: 1
+  max_epoch: 2
   batch_size: 64
   learning_rate: 1e-5
   loss: ce
