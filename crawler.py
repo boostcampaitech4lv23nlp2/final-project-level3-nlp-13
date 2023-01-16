@@ -56,7 +56,5 @@ if __name__ == "__main__":
     )
     args, _ = parser.parse_known_args()
     
-    if args.crawler == "naver":
-        assert args.num <= 100, "The maximum 'num for NaverCrawler is 100"
 
     main(args)
