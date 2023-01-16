@@ -60,7 +60,8 @@ class Chatbot_utils:
 
         decoded_result = []
         for sample in sample_outputs:
-            decoded_result.append(self.decoding(sample).replace(input_sent, ""))
+            decoding = self.decoding(sample)
+            decoded_result.append(decoding.replace(input_sent, ""))
 
         for result in decoded_result:
             print(result)
