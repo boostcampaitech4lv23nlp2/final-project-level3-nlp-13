@@ -55,6 +55,5 @@ if __name__ == "__main__":
         help="screen name of the twitter user to crawl",
     )
     args, _ = parser.parse_known_args()
-    
 
     main(args)

@@ -9,7 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from tqdm import tqdm 
+from tqdm import tqdm
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -47,7 +47,7 @@ class NaverCrawler:
         self.driver.get(naver_search_url)
         elements = self.driver.find_elements(By.CSS_SELECTOR, "a.info")
 
-        return elements 
+        return elements
 
     def read_article(self, url: str) -> Union[dict, None]:
         try:
@@ -73,36 +73,36 @@ class NaverCrawler:
             },
             "data": [],
         }
-        
+
         pbar = tqdm(total=n, desc="Reading newspapaer")
         start = 1
         stack = len(output["data"])
         while stack < n:
             elements = self.get_news_elements(query, start, since, until)
-            
+
             if len(elements) == 0:
                 break
-            
+
             for elem in elements:
                 elem.click()
                 self.driver.switch_to.window(self.driver.window_handles[1])
                 naver_url = self.driver.current_url
                 if "news.naver.com" in naver_url or "entertain.naver.com" in naver_url:
                     article = self.read_article(naver_url)
-                
+
                     if isinstance(article, dict):
                         pbar.update(1)
                         stack += 1
                         item = {"id": f"naver_{query}_{stack}", "url": naver_url}
                         item.update(article)
                         output["data"].append(item)
-                
+
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
                 time.sleep(1.6)
-            
+
             start += 1
-        
+
         pbar.close()
         self.driver.quit()
         print(
