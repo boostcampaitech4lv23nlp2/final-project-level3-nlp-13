@@ -1,6 +1,5 @@
 from pyvirtualdisplay import Display
 from selenium import webdriver
-from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,8 +12,6 @@ import time
 import os
 import glob
 
-
-chrome_options=Options()
 
 chrome_options = Options()
 chrome_options.add_argument('--headless')
