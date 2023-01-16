@@ -9,32 +9,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from tqdm import trange
+from tqdm import tqdm 
 from dotenv import load_dotenv
 
 load_dotenv()
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
-# publishers = {
-#     "경향신문": 1032,
-#     "국민일보": 1005,
-#     "동아일보": 1020,
-#     "매일일보": 2385,
-#     "서울신문": 1081,
-#     "중앙일보": 1023,
-#     "한겨레": 1028,
-#     "한국일보": 1469,
-#     "스포츠서울": 1468,
-#     "연합뉴스": 1001,
-#     "매일경제": 1009,
-#     "디스패치": 1433,
-#     "ize": 1465,
-#     "일간스포츠": 1241,
-#     "KBS연예": 1438,
-#     "MBC연예": 1408,
-#     "매일신문": 1088,
-#     "스포츠경향": 1144,
-# }
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -54,30 +34,31 @@ class NaverCrawler:
             executable_path="/usr/local/bin/chromedriver", chrome_options=chrome_options
         )
 
-    def get_news_urls(
-        self, query: str = "bts", n: int = 100, since: str = "", until: str = ""
+    def get_news_elements(
+        self, query: str = "bts", start: int = 1, since: str = "", until: str = ""
     ) -> List:
         """
         네이버 검색을 사용하여 query 기사들 link 추출. 사실상 중복되는 기사들을 수집하는 것을 최소화하기 위해
         관련뉴스 중 최상위 뉴스 하나만 추출.
+        [Args]
+            - query: query string
+            - start: the sub-page index increasing by 10 from 1
+            - since, until: time range
         """
-
+        start = (start - 1) * 10 + 1
         naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0\
-            &query={query}&ds={since}&de={until}"
+            &query={query}&ds={since}&de={until}&start={start}"
 
         self.driver.get(naver_search_url)
-        urls = self.driver.find_elements(By.CSS_SELECTOR, "a.info")
-        urls = [url.get_attribute("href") for url in urls]
+        elements = self.driver.find_elements(By.CSS_SELECTOR, "a.info")
 
-        print(f"Got {len(urls)} urls from Naver.")
-        return urls
+        return elements 
 
-    def read_news(self, url: str) -> Union[dict, None]:
+    def read_article(self, url: str) -> Union[dict, None]:
         try:
             self.driver.get(url)
             self.driver.implicitly_wait(10)
             parsed = self.parse()
-            time.sleep(1.5)
             return parsed  # TO-DO: class or namedtupel for news results
         except:
             return None
@@ -90,7 +71,6 @@ class NaverCrawler:
             - since: YYYY-MM-DD. 검색기간 시작일
             - until: YYYY-MM-DD. 검색기간 마지막일
         """
-        urls = self.get_news_urls(query=query, n=n, since=since, until=until)
         output = {
             "info": {
                 "query": query,
@@ -98,14 +78,37 @@ class NaverCrawler:
             },
             "data": [],
         }
-        for idx in trange(len(urls)):
-            url = urls[idx]
-            news = self.read_news(url)
-            if isinstance(news, dict):
-                item = {"id": f"naver_{query}_{idx}", "url": url}
-                item.update(news)
-                output["data"].append(item)
-
+        
+        pbar = tqdm(total=n, desc="Reading newspapaer")
+        start = 1
+        stack = len(output["data"])
+        while stack < n:
+            elements = self.get_news_elements(query, start, since, until)
+            
+            if len(elements) == 0:
+                break
+            
+            for elem in elements:
+                elem.click()
+                self.driver.switch_to.window(self.driver.window_handles[1])
+                naver_url = self.driver.current_url
+                if "news.naver.com" in naver_url or "entertain.naver.com" in naver_url:
+                    article = self.read_article(naver_url)
+                
+                    if isinstance(article, dict):
+                        pbar.update(1)
+                        stack += 1
+                        item = {"id": f"naver_{query}_{stack}", "url": naver_url}
+                        item.update(article)
+                        output["data"].append(item)
+                
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
+                time.sleep(1.6)
+            
+            start += 1
+        
+        pbar.close()
         self.driver.quit()
         print(
             f"Crawled {len(output['data'])} articles from the given query '{query}'"
