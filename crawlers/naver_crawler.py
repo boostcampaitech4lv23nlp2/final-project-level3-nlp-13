@@ -10,11 +10,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
 from tqdm import tqdm 
-from dotenv import load_dotenv
-
-load_dotenv()
-NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
-NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -176,6 +171,12 @@ class NaverCrawler:
             print(f"Saved to {self.save_path}")
 
 
+# from dotenv import load_dotenv
+
+# load_dotenv()
+# NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
+# NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
+#
 # class NaverCrawler:
 # """
 # Naver Search API로 (최대 100개) 기사의 url을 받아온 후 셀레니움으로 개별 기사를 태깅
