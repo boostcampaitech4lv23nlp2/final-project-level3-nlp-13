@@ -133,6 +133,8 @@ ENV/
 env.bak/
 venv.bak/
 Pipfile
+poetry.lock
+pyproejct.toml
 
 # Spyder project settings
 .spyderproject
@@ -183,8 +185,6 @@ data
 .vscode
 .git
 
-# Personal files/folder
-credentials.py
 
 # WandB
 wandb/
