@@ -134,7 +134,7 @@ env.bak/
 venv.bak/
 Pipfile
 poetry.lock
-pyproejct.toml
+pyproject.toml
 
 # Spyder project settings
 .spyderproject
