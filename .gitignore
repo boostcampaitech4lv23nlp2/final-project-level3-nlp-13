@@ -29,6 +29,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.python-version
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -131,6 +132,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+Pipfile
+poetry.lock
+pyproejct.toml
 
 # Spyder project settings
 .spyderproject
@@ -181,8 +185,6 @@ data
 .vscode
 .git
 
-# Personal folder
-jihoon
 
 # WandB
 wandb/
@@ -194,7 +196,6 @@ model/save_models/
 model.pt
 output.csv
 output_n.csv
-README.md
 
 save_models/
 saved_models/
@@ -203,6 +204,7 @@ config/*
 outputs/
 
 data/*.csv
+data/*.pickle
 prediction/
 best_model/
 klue-roberta-retrained/
