@@ -1,9 +1,3 @@
-import io
-from typing import Any, Dict, List
-
-import albumentations
-import albumentations.pytorch
-import numpy as np
 import torch
 from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast
 
@@ -40,7 +34,7 @@ class Chatbot_utils:
     def decoding(self, ids):
         return self.tokenizer.decode(ids, skip_special_tokens=True)
 
-    def get_answer(self, input_sent):
+    def get_answer(self, input_sent, max_len, top_k, top_p):
         input_ids = self.encoding(input_sent)
 
         e_s = self.tokenizer.eos_token_id
@@ -50,9 +44,9 @@ class Chatbot_utils:
             input_ids,
             num_return_sequences=1,
             do_sample=True,
-            max_length=128,
-            top_k=50,
-            top_p=0.95,
+            max_length=max_len,
+            top_k=top_k,
+            top_p=top_p,
             eos_token_id=e_s,
             early_stopping=True,
             bad_words_ids=[[unk]],  # 입력한 토큰(unk 토큰)이 생성되지 않도록 피하는 과정이 generate 함수 내에서 이루어짐
@@ -65,7 +59,6 @@ class Chatbot_utils:
 
         for result in decoded_result:
             print(result)
-            print()
 
         if len(decoded_result) == 1:
             return decoded_result[0]
