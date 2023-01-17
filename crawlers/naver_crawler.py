@@ -84,23 +84,29 @@ class NaverCrawler:
                 break
 
             for elem in elements:
-                elem.click()
-                self.driver.switch_to.window(self.driver.window_handles[1])
-                naver_url = self.driver.current_url
-                if "news.naver.com" in naver_url or "entertain.naver.com" in naver_url:
-                    article = self.read_article(naver_url)
+                try:
+                    elem.click()
+                    self.driver.switch_to.window(self.driver.window_handles[1])
+                    naver_url = self.driver.current_url
+                    if (
+                        "news.naver.com" in naver_url
+                        or "entertain.naver.com" in naver_url
+                    ):
+                        article = self.read_article(naver_url)
 
-                    if isinstance(article, dict):
-                        pbar.update(1)
-                        stack += 1
-                        item = {"id": f"naver_{query}_{stack}", "url": naver_url}
-                        item.update(article)
-                        output["data"].append(item)
+                        if isinstance(article, dict):
+                            pbar.update(1)
+                            stack += 1
+                            item = {"id": f"naver_{query}_{stack}", "url": naver_url}
+                            item.update(article)
+                            output["data"].append(item)
 
-                self.driver.close()
-                self.driver.switch_to.window(self.driver.window_handles[0])
-                time.sleep(1.6)
-
+                    self.driver.close()
+                    self.driver.switch_to.window(self.driver.window_handles[0])
+                    time.sleep(1.6)
+                except:
+                    continue
+                
             start += 1
 
         pbar.close()
