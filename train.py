@@ -18,6 +18,7 @@ def main(config):
         config.model.name, bos_token="</s>", eos_token="</s>", sep_token="<sep>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
     )
     train_dataset = GPTDataset(tokenizer=tokenizer, file_path=config.path.train_path)
+    test_dataset = GPTDataset(tokenizer=tokenizer, file_path=config.path.test_path)
 
     print("🔥 get model...")
     model = GPT2LMHeadModel.from_pretrained(config.model.name)
@@ -55,7 +56,7 @@ def main(config):
         args=args,
         data_collator=data_collator,
         train_dataset=train_dataset.tokenized_datasets["train"],
-        # eval_dataset=tokenized_datasets["train"],
+        eval_dataset= test_dataset.tokenized_datasets["test"], 
         callbacks=[EarlyStoppingCallback(early_stopping_patience=5)],
     )
 
