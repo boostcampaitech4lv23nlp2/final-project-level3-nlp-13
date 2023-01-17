@@ -1,23 +1,16 @@
-import io
 import json
-import os
-from pathlib import Path
 
 import requests
 import streamlit as st
-from app.confirm_button_hack import cache_on_button_press
 from streamlit_chat import message
-
-# SETTING PAGE CONFIG TO WIDE MODE
-ASSETS_DIR_PATH = os.path.join(Path(__file__).parent.parent.parent.parent, "assets")
-
-# st.set_page_config(layout="wide")
-
-# root_password = "a"
 
 
 def main():
-    st.title("Mission Model")
+    st.title("nlpotato chatbot")
+    st.sidebar.subheader("Generation Settings")
+    max_len = st.sidebar.slider("max length", 30, 100, value=60)
+    top_k = st.sidebar.slider("top k sampling", 10, 50, value=25)
+    top_p = st.sidebar.slider("top p sampling", 0.0, 1.0, step=0.01, value=0.95)
 
     if "generated" not in st.session_state:
         st.session_state["generated"] = []
@@ -31,7 +24,7 @@ def main():
 
     if submitted and user_input:
         if user_input:
-            files = {"sentence": user_input}
+            files = {"sentence": user_input, "max_len": max_len, "top_k": top_k, "top_p": top_p}
 
             response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
             output = response.json()
@@ -45,16 +38,4 @@ def main():
             message(st.session_state["generated"][i], key=str(i) + "_bot")
 
 
-# @cache_on_button_press("Authenticate")
-# def authenticate(password) -> bool:
-#     return password == root_password
-
-
-# password = st.text_input("password", type="password")
-
-# if authenticate(password):
-#     st.success("You are authenticated!")
-#     main()
-# else:
-#     st.error("The password is invalid.")
 main()
