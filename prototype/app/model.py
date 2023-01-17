@@ -5,7 +5,6 @@ from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast
 def get_model(
     model_path: str = "nlpotato/kogpt2_chatbot_social_media-e10",
 ) -> GPT2LMHeadModel:
-    print("🔥 get model...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
         model_path,
         # "skt/kogpt2-base-v2",

@@ -3,11 +3,13 @@ import json
 import logging
 import os
 import sys
+from io import StringIO
 
 import pytz
 import requests
 import streamlit as st
 from streamlit_chat import message
+from tqdm import tqdm
 
 
 class Formatter(logging.Formatter):
@@ -62,6 +64,8 @@ def main():
     top_k = st.sidebar.slider("top k sampling", 10, 50, value=25)
     top_p = st.sidebar.slider("top p sampling", 0.0, 1.0, step=0.01, value=0.95)
 
+    uploaded_file = st.file_uploader("Choose an file", type=["txt"])
+
     if "generated" not in st.session_state:
         st.session_state["generated"] = []
 
@@ -79,10 +83,27 @@ def main():
             response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
             output = response.json()
 
-        st.session_state.past.append(user_input)
-        st.session_state.generated.append(output)
+            st.session_state.past.append(user_input)
+            st.session_state.generated.append(output)
 
-        logger.info(f"{user_input}\t{output.strip()}")
+            logger.info(f"{user_input}\t{output.strip()}")
+
+    if uploaded_file:
+        texts = uploaded_file.getvalue()
+        stringio = StringIO(texts.decode("utf-8"))
+
+        string_data = stringio.readlines()
+        for txt in tqdm(string_data, total=len(string_data)):
+            txt = txt.strip()
+            files = {"sentence": txt, "max_len": max_len, "top_k": top_k, "top_p": top_p}
+
+            response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
+            output = response.json()
+
+            st.session_state.past.append(txt)
+            st.session_state.generated.append(output)
+
+            logger.info(f"{txt}\t{output.strip()}")
 
     for i in range(len(st.session_state["past"])):
         message(st.session_state["past"][i], is_user=True, key=str(i) + "_user")
