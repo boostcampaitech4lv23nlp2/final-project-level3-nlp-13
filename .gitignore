@@ -209,3 +209,4 @@ data/*.pickle
 prediction/
 best_model/
 klue-roberta-retrained/
+chromedriver
