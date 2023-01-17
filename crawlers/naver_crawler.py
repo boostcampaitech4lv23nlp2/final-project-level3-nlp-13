@@ -106,7 +106,7 @@ class NaverCrawler:
                     time.sleep(1.6)
                 except:
                     continue
-                
+
             start += 1
 
         pbar.close()
@@ -297,9 +297,3 @@ class NaverCrawler:
 #             pattern = re.compile(caption)
 #             text = re.sub(pattern, "", text)
 #         return text
-
-#     def save(self, query: str, run_time: str, data: dict) -> None:
-#         size = len(data["data"])
-#         with open(f"{self.save_path}_{query}_{run_time}_size_{size}.pickle", "wb") as f:
-#             pickle.dump(data, f)
-#             print(f"Saved to {self.save_path}")
