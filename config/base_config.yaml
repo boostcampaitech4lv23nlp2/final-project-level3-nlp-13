@@ -1,3 +1,22 @@
+spam:
+  model:
+    name: "klue/bert-base" #"bert-base-multilingual-cased"
+  path:
+    train_path: jeongah/curse-detection-data 
+    test_path: jeongah/curse-detection-data
+    model: ./spam_saved_models/klue/bert-base_01-17-14-18_10epoch
+  train:
+    max_epoch: 1
+    batch_size: 64 
+    learning_rate: 1e-5
+    loss: ce
+    label_smoothing: 0.1
+    use_frozen: False
+    print_val_cm: True
+    print_test_cm: True
+    optimizer: AdamW
+    scheduler: StepLR
+
 path:
   train_path: jeongah/chatbot_social_media
   test_path: jeongah/chatbot_social_media
@@ -9,7 +28,7 @@ dataloader:
   architecture: BaseDataloader
 
 model:
-  name: skt/kogpt2-base-v2
+  name: ./saved_models/skt/kogpt2-base-v2_01-16-13-22_3epoch #skt/kogpt2-base-v2 
   architecture: BaseModel
 
 tokenizer:
@@ -21,8 +40,8 @@ tokenizer:
   syllable: False
 
 train:
-  max_epoch: 3
-  batch_size: 1 #64
+  max_epoch: 10
+  batch_size: 64 
   learning_rate: 1e-5
   loss: ce
   label_smoothing: 0.1
