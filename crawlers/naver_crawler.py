@@ -165,10 +165,15 @@ class NaverCrawler:
         return text
 
     def save(self, query: str, run_time: str, data: dict) -> None:
-        size = len(data["data"])
-        with open(f"{self.save_path}_{query}_{run_time}_size_{size}.pickle", "wb") as f:
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
+        path = os.path.join(
+            self.save_path, f"{query}_{run_time}_size{len(data['data'])}.pickle"
+        )
+        with open(path, "wb") as f:
             pickle.dump(data, f)
-            print(f"Saved to {self.save_path}")
+            print(f"Saved to {path}")
 
 
 # from dotenv import load_dotenv
