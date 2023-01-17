@@ -35,7 +35,7 @@ def CreateLogger(logger_name):
     # logging 설정
     logger = logging.getLogger(logger_name)
 
-    """ 중복 logging이 되지 않도록 logger가 존재하면 새로운 logger가 생성되지 않도록 체크"""
+    # 중복 logging이 되지 않도록 logger가 존재하면 새로운 logger가 생성되지 않도록 기존 logger 반환
     # Check handler exists
     if len(logger.handlers) > 0:
         return logger  # Logger already exists
