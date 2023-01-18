@@ -5,9 +5,10 @@ import numpy as np
 import pytz
 import torch
 import wandb
-from data_loader.data_loaders import ChatDataset, GPTDataset
+from data_loader.data_loaders import ChatDataset, GPT_Dataset
 from omegaconf import OmegaConf
-from transformers import DataCollatorForLanguageModeling, EarlyStoppingCallback, GPT2LMHeadModel, PreTrainedTokenizerFast, Trainer, TrainingArguments
+from trainer.trainer import GPT_Chatbot
+from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast, TrainingArguments
 
 
 def main(config):
@@ -16,60 +17,49 @@ def main(config):
 
     print("🔥 get dataset...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
-        config.model.name, bos_token="</s>", eos_token="</s>", sep_token="<sep>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
+        config.model.name_or_path, bos_token="</s>", eos_token="</s>", sep_token="<sep>", unk_token="<unk>", pad_token="<pad>", mask_token="<mask>"
     )
-    train_dataset = GPTDataset(tokenizer=tokenizer, file_path=config.path.train_path)
+    train_dataset = GPT_Dataset(tokenizer=tokenizer, config=config)
 
     print("🔥 get model...")
-    model = GPT2LMHeadModel.from_pretrained(config.model.name)
+    model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
     model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
 
-    data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
-
     print("🔥 start training...")
     now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
-    file_name = f"saved_models/{config.model.name}_{now_time}_{config.train.max_epoch}epoch"
-    run_id = f"chatbot_{config.wandb.name}_{now_time}"
-    wandb.init(
-        entity=config.wandb.team,
-        project=config.wandb.project,
-        group=config.model.name,
-        id=run_id,
-        tags=config.wandb.tags,
-    )
+    file_name = f"saved_models/{config.model.name_or_path}/{config.train.num_train_epochs}epoch_{now_time}"
+    training_args = TrainingArguments(**config.train, output_dir=file_name)
+    if config.wandb.use:
+        run_id = f"chatbot_{config.wandb.name}_{now_time}"
+        wandb.init(
+            entity=config.wandb.team,
+            project=config.wandb.project,
+            group=config.model.name_or_path,
+            id=run_id,
+            tags=config.wandb.tags,
+        )
+        training_args.report_to = ["wandb"]
 
-    args = TrainingArguments(
-        output_dir=file_name,
-        per_device_train_batch_size=32,
-        per_device_eval_batch_size=32,
-        evaluation_strategy="steps",
-        eval_steps=5_000,
-        logging_steps=5_000,
-        gradient_accumulation_steps=8,
-        num_train_epochs=config.train.max_epoch,
-        weight_decay=0.1,
-        warmup_steps=1_000,
-        lr_scheduler_type="cosine",
-        learning_rate=5e-5,
-        save_steps=5_000,
-        fp16=True,
-        load_best_model_at_end=True,
-        push_to_hub=False,
-    )
-
-    trainer = Trainer(
-        model=model,
+    trainer = GPT_Chatbot(
+        config=config,
+        training_args=training_args,
         tokenizer=tokenizer,
-        args=args,
-        data_collator=data_collator,
-        train_dataset=train_dataset.tokenized_datasets["train"],
-        eval_dataset=train_dataset.tokenized_datasets["test"],
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)],
+        model=model,
+        datasets=train_dataset,
     )
 
     trainer.train()
-    trainer.save_model(file_name)
+
+    # share the pretrained model to huggingface hub
+    if config.hf_hub.push_to_hub is True:
+        save_name = config.hf_hub.save_name
+        if not save_name.startswith("nlpotato/"):
+            save_name = "nlpotato/" + save_name
+        model.push_to_hub(config.hf_hub.save_name)
+        tokenizer.push_to_hub(config.hf_hub.save_name)
+
+    wandb.finish()
 
 
 if __name__ == "__main__":
