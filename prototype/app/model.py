@@ -3,7 +3,7 @@ from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast
 
 
 def get_model(
-    model_path: str = "/opt/ml/input/final-project-level3-nlp-13/saved_models/skt/kogpt2-base-v2_01-13-14-40_3epoch",
+    model_path: str = "nlpotato/kogpt2_chatbot_social_media-e10",
 ) -> GPT2LMHeadModel:
     print("🔥 get model...")
     tokenizer = PreTrainedTokenizerFast.from_pretrained(
