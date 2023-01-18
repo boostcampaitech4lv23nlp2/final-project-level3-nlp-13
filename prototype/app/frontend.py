@@ -77,16 +77,15 @@ def main():
         submitted = st.form_submit_button("전송")
 
     if submitted and user_input:
-        if user_input:
-            files = {"sentence": user_input, "max_len": max_len, "top_k": top_k, "top_p": top_p}
+        files = {"sentence": user_input, "max_len": max_len, "top_k": top_k, "top_p": top_p}
 
-            response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
-            output = response.json()
+        response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
+        output = response.json()
 
-            st.session_state.past.append(user_input)
-            st.session_state.generated.append(output)
+        st.session_state.past.append(user_input)
+        st.session_state.generated.append(output)
 
-            logger.info(f"{user_input}\t{output.strip()}")
+        logger.info(f"{user_input}\t{output.strip()}")
 
     if uploaded_file:
         texts = uploaded_file.getvalue()
