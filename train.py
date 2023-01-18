@@ -4,6 +4,7 @@ import datetime
 import numpy as np
 import pytz
 import torch
+import wandb
 from data_loader.data_loaders import ChatDataset, GPTDataset
 from omegaconf import OmegaConf
 from transformers import DataCollatorForLanguageModeling, EarlyStoppingCallback, GPT2LMHeadModel, PreTrainedTokenizerFast, Trainer, TrainingArguments
@@ -29,6 +30,14 @@ def main(config):
     print("🔥 start training...")
     now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
     file_name = f"saved_models/{config.model.name}_{now_time}_{config.train.max_epoch}epoch"
+    run_id = f"chatbot_{config.wandb.name}_{now_time}"
+    wandb.init(
+        entity=config.wandb.team,
+        project=config.wandb.project,
+        group=config.model.name,
+        id=run_id,
+        tags=config.wandb.tags,
+    )
 
     args = TrainingArguments(
         output_dir=file_name,
