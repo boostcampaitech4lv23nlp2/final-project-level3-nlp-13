@@ -55,8 +55,8 @@ class NaverCrawler:
         [Args]
             - query: 검색어
             - n: 크롤링할 (최대) 기사수
-            - since: YYYY-MM-DD. 검색기간 시작일
-            - until: YYYY-MM-DD. 검색기간 마지막일
+            - since: YYYY.MM.DD. 검색기간 시작일
+            - until: YYYY.MM.DD. 검색기간 마지막일
         """
         output = {
             "info": {
@@ -97,7 +97,15 @@ class NaverCrawler:
         print(
             f"Crawled {len(output['data'])} articles from the given query '{query}'"
         )  # TO-DO: change to logger
-        self.save(query=query, run_time=self.runtime, data=output)
+
+        if since == "":
+            runtime = self.runtime[2:] + "-"  # YYYYMMDD -> YYMMDD
+        elif since != "":
+            runtime = since.replace(".", "")[2:] + "-"
+        if until != "":
+            runtime += until.replace(".", "")[2:]
+
+        self.save(query=query, time=runtime, data=output)
 
     def parse(self, soup) -> dict:
         """
@@ -146,12 +154,12 @@ class NaverCrawler:
             text = re.sub(pattern, "", text)
         return text
 
-    def save(self, query: str, run_time: str, data: dict) -> None:
+    def save(self, query: str, time: str, data: dict) -> None:
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
         path = os.path.join(
-            self.save_path, f"{query}_{run_time}_size{len(data['data'])}.pickle"
+            self.save_path, f"{query}_{time}_size{len(data['data'])}.pickle"
         )
         with open(path, "wb") as f:
             if len(data["data"]) > 0:

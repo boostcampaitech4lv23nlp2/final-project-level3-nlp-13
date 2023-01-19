@@ -8,7 +8,7 @@ from crawlers.theqoo_crawler import TheqooCrawler
 
 
 def main(args):
-    runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
+    runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%Y%m%d")
 
     if args.crawler == "naver":
         query = args.query
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--range",
         "-r",
-        default=" ~ ",
+        default="~",
         type=str,
         help="YYYY-MM-DD~YYYY-MM-DD. Specify search time range for NaverCrawler",
     )
