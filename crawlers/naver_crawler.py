@@ -102,8 +102,9 @@ class NaverCrawler:
             runtime = self.runtime[2:] + "-"  # YYYYMMDD -> YYMMDD
         elif since != "":
             runtime = since.replace(".", "")[2:] + "-"
-        if until != "":
-            runtime += until.replace(".", "")[2:]
+
+        last_article_time = parsed["written_at"].split()[0]
+        runtime += last_article_time.replace(".", "")[2:]
 
         self.save(query=query, time=runtime, data=output)
 
