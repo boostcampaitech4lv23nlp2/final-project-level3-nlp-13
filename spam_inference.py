@@ -15,8 +15,8 @@ from transformers import BertForSequenceClassification, Trainer, TrainingArgumen
 
 def main(config):
     print("🤬 get model...")
-    tokenizer = AutoTokenizer.from_pretrained(config.spam.model.name)
-    model = BertForSequenceClassification.from_pretrained(config.spam.path.model)
+    tokenizer = AutoTokenizer.from_pretrained(config.spam.path.inference_model)
+    model = BertForSequenceClassification.from_pretrained(config.spam.path.inference_model)
 
     def sentences_predict(sent):        
         model.eval()
@@ -39,14 +39,35 @@ def main(config):
         logits = outputs[0]
         logits = logits.detach().cpu().numpy()
         result = np.argmax(logits)
-        return result
+        return sent, result
 
+    print(sentences_predict("시발")) #1
+    print(sentences_predict("시발롬아")) #1
+    print(sentences_predict("ㅅㅂ")) #1
+    print(sentences_predict("지랄")) #1
+    print(sentences_predict("ㅈㄹ")) #1
+    print(sentences_predict("존나 무섭네")) #1
+    print(sentences_predict("개꼴 씨발 ㅋㅋ")) #1
+    print(sentences_predict("시발 일게이들 이제 러브인 아시아 강제로 찍게되노 ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ")) #1
+    print(sentences_predict("이미 한남 와꾸는........ 읍음....!!!!")) #1
+    print(sentences_predict("게이도 좆같고 레즈도 좆같고 동성애 씨발년놈들은 옛날처럼 아우슈비츠 가스실에 싸그리 모아놓고 독가스 살포해서애미애비 보는앞에서 고통스럽고 잔인하게 죽여야된다")) #1
     print(sentences_predict("짱개 주작 ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ")) #1
-    print(sentences_predict("어제 하루종일 속상하고 나니까")) #0
     print(sentences_predict("게이야 용기사면 드래곤 사역하고있노?")) #1
-    print(sentences_predict("밝은 회색이 유행이라던데")) #0
     print(sentences_predict("지방것들이")) #1
+    print(sentences_predict("ㄹㅇ 개좃같은 페미민국 진짜요즘 좌좀 달창 분탕년들 남초에 오지게 풀었더만애국하면서 노예처럼 살아가라고 ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ")) #1
+    print(sentences_predict("속상하고 빡쳐")) #1
 
+    print(sentences_predict("속상하고 짜증나 죽겠음 진짜")) #0
+    print(sentences_predict("힝 불쌍해")) #0
+    print(sentences_predict("어제 하루종일 속상하고 나니까")) #0
+    print(sentences_predict("밝은 회색이 유행이라던데")) #0
+    print(sentences_predict("뭐 어쩌라고")) #0
+    print(sentences_predict("페미니스트의 모습이다")) #0
+    print(sentences_predict("졸라 귀엽다....")) #0
+    print(sentences_predict("세상이 밉다")) #0
+    print(sentences_predict("항상 댓글들이 왜 이럴까 의아했는데 지금은 상황이 이렇게 바뀌다니. 중국 참 무섭고 화나네.")) #0
+
+    
 if __name__ == "__main__":
     # config 설정
     parser = argparse.ArgumentParser()

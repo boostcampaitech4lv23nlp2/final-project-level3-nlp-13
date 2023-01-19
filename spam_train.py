@@ -43,7 +43,7 @@ def main(config):
     # ⭐ 해당 부분을 transformers에서는 라이브러리 하나만 호출하면 됩니다! :-)
     training_args = TrainingArguments(
         output_dir=file_name,          # output directory
-        num_train_epochs=3,              # total number of training epochs
+        num_train_epochs= config.spam.train.max_epoch,              # total number of training epochs
         per_device_train_batch_size=32,  # batch size per device during training
         per_device_eval_batch_size=64,   # batch size for evaluation
         warmup_steps=500,                # number of warmup steps for learning rate scheduler
