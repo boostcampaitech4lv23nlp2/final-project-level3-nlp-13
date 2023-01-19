@@ -27,29 +27,17 @@ class ChatDataset(torch.utils.data.Dataset):
         return (self.data["input_ids"][index], self.data["attention_mask"][index], self.data["token_type_ids"][index])
 
 
-class GPTDataset:
-    def __init__(self, tokenizer, file_path, max_len=128):
+class GPT_Dataset:
+    def __init__(self, tokenizer, config):
+        self.config = config
         self.tokenizer = tokenizer
-        self.max_len = max_len
-        try:
-            self.raw_datasets = self.load_data(file_path)
-        except:
-            self.raw_datasets = load_dataset(file_path)
+        self.max_len = self.config.tokenizer.max_length
+        self.raw_datasets = load_dataset(self.config.path.data)
         self.tokenized_datasets = self.raw_datasets.map(
             self.tokenize,
             batched=True,
             remove_columns=self.raw_datasets["train"].column_names,
         )
-
-    def load_data(self, file_path):
-        raw_data = pd.read_csv(file_path)
-        raw_datasets = DatasetDict(
-            {
-                "train": Dataset(pa.Table.from_pandas(raw_data)),  # .shuffle().select(range(50000)),
-                "valid": Dataset(pa.Table.from_pandas(raw_data)),  # .shuffle().select(range(50000)),
-            }
-        )
-        return raw_datasets
 
     def tokenize(self, element):
         outputs = self.tokenizer(
@@ -57,7 +45,6 @@ class GPTDataset:
             truncation=True,
             padding="max_length",
             max_length=self.max_len,
-            return_overflowing_tokens=True,
             return_length=True,
         )
 
