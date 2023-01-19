@@ -1,12 +1,12 @@
 #### 모델 실행
-'''
+```
 python spam_train.py
-'''
+```
 
 #### 모델 inference
-'''
+```
 python spam_inference.py
-'''
+```
 
 
 #### config
