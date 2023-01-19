@@ -32,6 +32,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.python-version
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -92,21 +93,22 @@ ipython_config.py
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+.python-version
 
 # pipenv
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
-#Pipfile.lock
+#    **/Pipfile.lock
+#    Pipfile
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+#   poetry.lock
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
@@ -114,7 +116,7 @@ ipython_config.py
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
 #   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
+#   .pdm.toml
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -184,8 +186,6 @@ data
 .vscode
 .git
 
-# Personal folder
-jihoon
 
 # WandB
 wandb/
@@ -197,7 +197,6 @@ model/save_models/
 model.pt
 output.csv
 output_n.csv
-README.md
 
 save_models/
 saved_models/
@@ -206,6 +205,9 @@ config/*
 outputs/
 
 data/*.csv
+data/*.pickle
 prediction/
 best_model/
-klue-roberta-retrained/
+chromedriver
+nohup.out
+.empty/

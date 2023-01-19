@@ -56,7 +56,7 @@ def main(config):
         args=args,
         data_collator=data_collator,
         train_dataset=train_dataset.tokenized_datasets["train"],
-        eval_dataset= test_dataset.tokenized_datasets["test"], 
+        eval_dataset=train_dataset.tokenized_datasets["test"],
         callbacks=[EarlyStoppingCallback(early_stopping_patience=5)],
     )
 
