@@ -33,7 +33,6 @@ class NaverCrawler:
         """
         start = (start - 1) * 10 + 1
         naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0&pd=3&query={query}&ds={since}&de={until}&start={start}"
-        print(naver_search_url)
         res = req.get(naver_search_url, headers=self.headers)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
