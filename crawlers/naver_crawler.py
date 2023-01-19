@@ -16,7 +16,9 @@ class NaverCrawler:
         """
         self.save_path = "data/raw_data/naver"
         self.runtime = runtime
-        self.headers = {"User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36"}
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36"
+        }
 
     def get_news_urls(
         self, query: str = "bts", start: int = 1, since: str = "", until: str = ""
@@ -30,7 +32,7 @@ class NaverCrawler:
             - since, until: time range
         """
         start = (start - 1) * 10 + 1
-        naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0&query={query}&ds={since}&de={until}&start={start}"
+        naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0&pd=3&query={query}&ds={since}&de={until}&start={start}"
         res = req.get(naver_search_url, headers=self.headers)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
