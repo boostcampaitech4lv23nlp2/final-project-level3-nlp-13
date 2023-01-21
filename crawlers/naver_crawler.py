@@ -2,7 +2,7 @@ import pickle
 import os
 import re
 import time
-from typing import List, Union
+from typing import List, Union, Optional
 
 import requests as req
 from bs4 import BeautifulSoup
@@ -69,6 +69,7 @@ class NaverCrawler:
         pbar = tqdm(total=n, desc="Reading newspapaer")
         start = 1
         stack = 0
+        stale_soups = []
         while stack < n:
             urls = self.get_news_urls(query, start, since, until)
 
@@ -83,7 +84,7 @@ class NaverCrawler:
                     continue
                 res = req.get(url, headers=self.headers)
                 soup = BeautifulSoup(res.text, "html.parser")
-                if stale_soup == soup:
+                if url in stale_soups:
                     # 직전에 추출한 기사 재추출 방지
                     continue
                 parsed = self.read_article(soup)
@@ -93,7 +94,7 @@ class NaverCrawler:
                     output["data"].append(item)
                     pbar.update(1)
                     stack += 1
-                    stale_soup = soup
+                    stale_soups = urls[:]
 
             start += 1
 
@@ -136,7 +137,40 @@ class NaverCrawler:
         }
         return parsed
 
-    def preprocess(self, example: dict) -> dict:
+
+
+    def preprocess(self, raw_data_path:Optional[str]=None):
+        """
+        1차로 기사 제목을 기준으로 중복 제거. 동일한 columns을 가진 데이터들만 처리 가능
+        csv를 인풋 path에 저장
+        """
+        import time
+        import pandas as pd
+        from pathlib import Path
+
+        raw_data_path = self.pickle_path if raw_data_path is None else raw_data_path
+        path = Path(raw_data_path)
+        if path.is_file():
+            paths = [path]
+        elif path.is_dir():
+            paths = path.glob("**/*.pickle")
+
+        ls = []
+        for p in paths:
+            with p.open("rb") as f:
+                saved = pickle.load(f)
+                ls.append(pd.DataFrame(saved["data"]))
+
+        df = pd.concat(ls)
+        start = time.time()
+        df = df.apply(lambda row: self.preprocess_example(row), axis=1)
+        df.drop_duplicates(inplace=True)
+        df.dropna(axis="index", how="all", inplace=True)
+        df = df[["title", "body", "written_at"]]
+        print(f"Took {time.time()-start}s for preprocessing")
+        df.to_csv(path / "preprocessed.csv", index=False)
+
+    def preprocess_example(self, example: dict) -> dict:
 
         title, body, img_captions, writer, written_at = (
             example["title"],
@@ -146,16 +180,22 @@ class NaverCrawler:
             example["written_at"],
         )
         title, body = title.strip(), body.strip()
+        written_at = written_at.split()[0]
+        if not self.is_kor_article(title):
+            return {
+                "title": None,
+                "body": None,
+                "written_at": None,
+            }
+
         body = self.remove_caption(body, img_captions)
         body = self.fix_encoded(body)
         body = self.remove_garbage(body)
         body = self.remove_info(body)
-        body = self.reduce_dup_spaces(body)
         return {
             "title": title,
             "body": body,
             "written_at": written_at,
-            "writer": writer,
         }
 
     def is_kor_article(self, title: str) -> bool:
@@ -171,7 +211,7 @@ class NaverCrawler:
         puncs = (".", "!", "?")
         cleaned = []
         for idx, part in enumerate(parts):
-            part = part.strip()
+            part = part.strip(" ")
             if idx != len(parts) - 1 and not part.endswith(puncs):
                 # e.g. ""기사내용 요약 방탄 음원 1위""
                 continue
@@ -189,9 +229,9 @@ class NaverCrawler:
         서두에 있는 언론사명, 기자명 등을 제거
 
         """
-        p1 = re.compile("^[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
-        p2 = re.compile("^\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
-        p3 = re.compile("^[\[\(].+[\]\)] =")  # (서울=뉴스) =
+        p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
+        p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
+        p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
         p4 = re.compile("^\[.+?\]")  # [신문사]
         for p in [p1, p2, p3, p4]:
             line = re.sub(p, "", line)
@@ -240,9 +280,6 @@ class NaverCrawler:
             text = text.replace(caption, "")
         return text
 
-    def reduce_dup_spaces(self, text) -> str:
-        return re.sub(r"(\s)+", r"\1", text).strip()
-
     def fix_encoded(self, text) -> str:
         return re.sub("\xa0", "", text)
 
@@ -250,13 +287,13 @@ class NaverCrawler:
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
-        path = os.path.join(
+        self.pickle_path = os.path.join(
             self.save_path, f"{query}_{run_time}_size{len(data['data'])}.pickle"
         )
-        with open(path, "wb") as f:
+        with open(self.pickle_path, "wb") as f:
             if len(data["data"]) > 0:
                 pickle.dump(data, f)
-                print(f"Saved to {path}")
+                print(f"Saved to {self.pickle_path}")
 
 
 # from dotenv import load_dotenv
