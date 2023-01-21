@@ -159,19 +159,19 @@ class NaverCrawler:
         for p in paths:
             with p.open("rb") as f:
                 saved = pickle.load(f)
-                ls.append(pd.DataFrame(saved["data"]))
+                df = pd.DataFrame(saved["data"])
+                ls.append(df)
 
         df = pd.concat(ls)
         start = time.time()
-        df = df.apply(lambda row: self.preprocess_example(row), axis=1)
+
+        df = df.apply(lambda row: pd.Series(self.preprocess_example(row)), axis=1)
         df.drop_duplicates(inplace=True)
-        df.dropna(axis="index", how="all", inplace=True)
-        df = df[["title", "body", "written_at"]]
+        df.dropna(axis=0, how="any", inplace=True)
         print(f"Took {time.time()-start}s for preprocessing")
         df.to_csv(path / "preprocessed.csv", index=False)
 
     def preprocess_example(self, example: dict) -> dict:
-
         title, body, img_captions, writer, written_at = (
             example["title"],
             example["body"],
@@ -181,25 +181,32 @@ class NaverCrawler:
         )
         title, body = title.strip(), body.strip()
         written_at = written_at.split()[0]
-        if not self.is_kor_article(title):
-            return {
-                "title": None,
-                "body": None,
-                "written_at": None,
-            }
 
+        output = {
+            "title": title,
+            "body_unprocessed": body,
+            "body": None,
+            "written_at": written_at,
+        }
+
+        if self.is_photo_article(title, body) or not self.is_kor_article(title):
+            return output
         body = self.remove_caption(body, img_captions)
         body = self.fix_encoded(body)
         body = self.remove_garbage(body)
         body = self.remove_info(body)
-        return {
-            "title": title,
-            "body": body,
-            "written_at": written_at,
-        }
+        if body.strip() == "":
+            return output
+        output["body"] = body
+        return output
 
     def is_kor_article(self, title: str) -> bool:
         if re.search(r"[가-힣]", title):
+            return True
+        return False
+
+    def is_photo_article(self, title:str, body:str) -> bool:
+        if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) == 1:
             return True
         return False
 
@@ -211,6 +218,8 @@ class NaverCrawler:
         puncs = (".", "!", "?")
         cleaned = []
         for idx, part in enumerate(parts):
+            if part == "":
+                continue
             part = part.strip(" ")
             if idx != len(parts) - 1 and not part.endswith(puncs):
                 # e.g. ""기사내용 요약 방탄 음원 1위""
@@ -229,15 +238,18 @@ class NaverCrawler:
         서두에 있는 언론사명, 기자명 등을 제거
 
         """
-        p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
-        p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
-        p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
-        p4 = re.compile("^\[.+?\]")  # [신문사]
-        for p in [p1, p2, p3, p4]:
-            line = re.sub(p, "", line)
-        m = re.match(p4, line)
-        if m:
-            line = line[m.span()[1] :]
+        p = re.compile(r"^(\([가-힣a-zA-Z0-9= ]+\)|\[[가-힣a-zA-Z0-9= ]+\]|[가-힣a-zA-Z0-9 ]+=)+")
+        line = re.sub(p, "", line)
+
+        #p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
+        #p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
+        #p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
+        #p4 = re.compile("^\[.+?\]")  # [신문사]
+        #for p in [p1, p2, p3, p4]:
+        #    line = re.sub(p, "", line)
+        #m = re.match(p4, line)
+        #if m:
+        #    line = line[m.span()[1] :]
         return line
 
     def remove_info_tail(self, line: str) -> str:
@@ -249,10 +261,10 @@ class NaverCrawler:
         """
 
         p = re.compile(
-            r"(?<=다\.)\s?[^\.]*(\(?[가-힣a-zA-Z ]+\)?)\s?(\(?\/?([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,})\)?)?\s?(\([가-힣 ]*\))?$"
+            r"(?<=다\.)\s?[^\.]*(\(?[가-힣a-zA-Z ]+\)?)\s?(\(?\/?([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,})\)?)?\s?(\([가-힣 ]+\))?$"
         )
         line = re.sub(p, "", line)
-        line = re.sub(r"(?<=다\.)\s?[▲△][^\.]+$", "", line)  # 수상 내역 등 정보 나열
+        line = re.sub(r"(?<=다\.)\s?[▲△▶][^\.]+$", "", line)  # 수상 내역 등 정보 나열
         return line.strip()
 
     def remove_garbage(self, body: str) -> str:
@@ -266,7 +278,8 @@ class NaverCrawler:
             "* YTN star에서는 연예인 및 연예계 종사자들과 관련된 제보를 받습니다. ytnstar@ytn.co.kr로 언제든 연락주시기 바랍니다. 감사합니다.",
             "발로 뛰는 더팩트는 24시간 여러분의 제보를 기다립니다.▶카카오톡: '더팩트제보' 검색▶이메일: jebo@tf.co.kr▶뉴스 홈페이지: http://talk.tf.co.kr/bbs/report/write",
             "[사진]OSEN DB.",
-            "[사진]OSEN DB"
+            "[사진]OSEN DB",
+            ""
         ]
         for garb in garbage:
             body = re.sub(re.escape(garb), "", body)
@@ -282,6 +295,7 @@ class NaverCrawler:
 
     def fix_encoded(self, text) -> str:
         return re.sub("\xa0", "", text)
+
 
     def save(self, query: str, run_time: str, data: dict) -> None:
         if not os.path.exists(self.save_path):
