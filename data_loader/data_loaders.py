@@ -74,4 +74,4 @@ class BART_Dataset:
             return_attention_mask=False,
         )["input_ids"]
 
-        return {**inputs, "decoder_input_ids": target_tokens[:, :-1], "labels": target_tokens[:, 1:]}
+        return {**inputs, "labels": target_tokens}
