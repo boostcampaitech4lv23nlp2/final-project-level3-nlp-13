@@ -5,17 +5,8 @@ import time
 from typing import List, Union
 
 import requests as req
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-
+from bs4 import BeautifulSoup
 from tqdm import tqdm
-
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--disable-gpu")
 
 
 class NaverCrawler:
@@ -25,11 +16,11 @@ class NaverCrawler:
         """
         self.save_path = "data/raw_data/naver"
         self.runtime = runtime
-        self.driver = webdriver.Chrome(
-            executable_path="/usr/local/bin/chromedriver", chrome_options=chrome_options
-        )
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36"
+        }
 
-    def get_news_elements(
+    def get_news_urls(
         self, query: str = "bts", start: int = 1, since: str = "", until: str = ""
     ) -> List:
         """
@@ -41,19 +32,20 @@ class NaverCrawler:
             - since, until: time range
         """
         start = (start - 1) * 10 + 1
-        naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0\
-            &query={query}&ds={since}&de={until}&start={start}"
+        naver_search_url = f"https://search.naver.com/search.naver?where=news&sort=0&photo=0&pd=3&query={query}&ds={since}&de={until}&start={start}"
+        res = req.get(naver_search_url, headers=self.headers)
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+            naver_news_tags = soup.find_all("a", {"class": "info"})
+            urls = [tag["href"] for tag in naver_news_tags]
+            return urls
 
-        self.driver.get(naver_search_url)
-        elements = self.driver.find_elements(By.CSS_SELECTOR, "a.info")
+        else:
+            return None
 
-        return elements
-
-    def read_article(self, url: str) -> Union[dict, None]:
+    def read_article(self, soup) -> Union[dict, None]:
         try:
-            self.driver.get(url)
-            self.driver.implicitly_wait(10)
-            parsed = self.parse()
+            parsed = self.parse(soup)
             return parsed  # TO-DO: class or namedtupel for news results
         except:
             return None
@@ -63,8 +55,8 @@ class NaverCrawler:
         [Args]
             - query: 검색어
             - n: 크롤링할 (최대) 기사수
-            - since: YYYY-MM-DD. 검색기간 시작일
-            - until: YYYY-MM-DD. 검색기간 마지막일
+            - since: YYYY.MM.DD. 검색기간 시작일
+            - until: YYYY.MM.DD. 검색기간 마지막일
         """
         output = {
             "info": {
@@ -76,76 +68,69 @@ class NaverCrawler:
 
         pbar = tqdm(total=n, desc="Reading newspapaer")
         start = 1
-        stack = len(output["data"])
+        stack = 0
         while stack < n:
-            elements = self.get_news_elements(query, start, since, until)
+            urls = self.get_news_urls(query, start, since, until)
 
-            if len(elements) == 0:
+            if urls is None or len(urls) == 0:
+                # if there is no article or reqeust fails, stop crawling
+                print("Early Stopping")
                 break
 
-            for elem in elements:
-                try:
-                    elem.click()
-                    self.driver.switch_to.window(self.driver.window_handles[1])
-                    naver_url = self.driver.current_url
-                    if (
-                        "news.naver.com" in naver_url
-                        or "entertain.naver.com" in naver_url
-                    ):
-                        article = self.read_article(naver_url)
-
-                        if isinstance(article, dict):
-                            pbar.update(1)
-                            stack += 1
-                            item = {"id": f"naver_{query}_{stack}", "url": naver_url}
-                            item.update(article)
-                            output["data"].append(item)
-
-                    self.driver.close()
-                    self.driver.switch_to.window(self.driver.window_handles[0])
-                    time.sleep(1.6)
-                except:
+            for url in urls:
+                time.sleep(2.1)
+                if "news.naver.com" not in url:
                     continue
+                res = req.get(url, headers=self.headers)
+                soup = BeautifulSoup(res.text, "html.parser")
+                parsed = self.read_article(soup)
+                if parsed:
+                    item = {"id": f"naver_{query}_{stack}"}
+                    item.update(parsed)
+                    output["data"].append(item)
+                    pbar.update(1)
+                    stack += 1
 
             start += 1
 
         pbar.close()
-        self.driver.quit()
         print(
             f"Crawled {len(output['data'])} articles from the given query '{query}'"
         )  # TO-DO: change to logger
-        self.save(query=query, run_time=self.runtime, data=output)
 
-    def parse(self) -> dict:
+        if since == "":
+            runtime = self.runtime[2:] + "-"  # YYYYMMDD -> YYMMDD
+        elif since != "":
+            runtime = since.replace(".", "")[2:] + "-"
+
+        last_article_time = parsed["written_at"].split()[0]
+        runtime += last_article_time.replace(".", "")[2:]
+
+        self.save(query=query, time=runtime, data=output)
+
+    def parse(self, soup) -> dict:
         """
         기사(뉴스 또는 연예뉴스)에 따라 다른 tag을 갖고 있기 때문에 달리 parse
         """
-        by = By.CSS_SELECTOR
         try:
             # entertain news
-            title = self.driver.find_element(by, "h2.end_tit").text.strip()
-            body = self.driver.find_element(
-                by, "div.article_body"
-            ).text.strip()  # class: article_body
-            if caps := self.driver.find_elements(by, "em.img_desc"):
+            title = soup.select_one("h2", {"class": "ent_tit"}).text.strip()
+            body = soup.select_one("div.article_body").text.strip()
+            written_at = soup.select_one("span > em").text.strip()
+            writer = soup.select_one("p.byline_p > span").text.strip()
+            caps = soup.find_all("em", {"class": "img_desc"})
+            if caps:
                 img_captions = [cap.text.strip() for cap in caps]
-            written_at = self.driver.find_element(by, "span > em").text.strip()
-            writer = self.driver.find_element(by, "p.byline_p > span").text.strip()
 
         except:
             # news
-            title = self.driver.find_element(
-                by, "h2.media_end_head_headline"
-            ).text.strip()
-            body = self.driver.find_element(by, "div._article_content").text.strip()
-            if caps := self.driver.find_elements(by, "em.img_desc"):
+            title = soup.select_one("h2.media_end_head_headline").text.strip()
+            body = soup.select_one("div._article_content").text.strip()
+            written_at = soup.select_one("span._ARTICLE_DATE_TIME").text.strip()
+            writer = soup.select_one("em.media_end_head_journalist_name").text.strip()
+            caps = soup.find_all("em", {"class": "img_desc"})
+            if caps:
                 img_captions = [cap.text.strip() for cap in caps]
-            written_at = self.driver.find_element(
-                by, "span._ARTICLE_DATE_TIME"
-            ).text.strip()
-            writer = self.driver.find_element(
-                by, "em.media_end_head_journalist_name"
-            ).text.strip()
 
         parsed = {
             "title": title,
@@ -170,16 +155,17 @@ class NaverCrawler:
             text = re.sub(pattern, "", text)
         return text
 
-    def save(self, query: str, run_time: str, data: dict) -> None:
+    def save(self, query: str, time: str, data: dict) -> None:
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
         path = os.path.join(
-            self.save_path, f"{query}_{run_time}_size{len(data['data'])}.pickle"
+            self.save_path, f"{query}_{time}_size{len(data['data'])}.pickle"
         )
         with open(path, "wb") as f:
-            pickle.dump(data, f)
-            print(f"Saved to {path}")
+            if len(data["data"]) > 0:
+                pickle.dump(data, f)
+                print(f"Saved to {path}")
 
 
 # from dotenv import load_dotenv

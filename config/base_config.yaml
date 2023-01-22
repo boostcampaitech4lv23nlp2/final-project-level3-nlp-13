@@ -1,0 +1,61 @@
+path:
+  data: nlpotato/chatbot_small
+
+model:
+  name_or_path: skt/kogpt2-base-v2
+  resume:
+
+tokenizer:
+  max_length: 256
+  padding: max_length
+  stride: 128
+  return_token_type_ids: False # False for Roberta models
+
+optimizer: # default AdamW
+  learning_rate: 5e-5
+  weight_decay: 0
+  adam_beta1: 0.9 # The beta1 hyperparameter for the AdamW optimizer.
+  adam_beta2: 0.999 # The beta2 hyperparameter for the AdamW optimizer.
+  adam_epsilon: 1e-8 # The epsilon hyperparameter for the AdamW optimizer.
+  lr_scheduler_type: linear
+  warmup_ratio: 0.5
+
+train:
+  num_train_epochs: 20
+  fp16: False
+  save_strategy : steps # steps or epoch
+  save_steps: 30
+  save_total_limit: 1 # default 1: save the last and the best
+  evaluation_strategy: steps # steps or epoch
+  eval_steps: 30
+  learning_rate: 5e-5
+  # warmup_steps: 100
+  warmup_ratio: 0.5
+  logging_steps: 30
+  per_device_train_batch_size: 32
+  per_device_eval_batch_size: 32
+  gradient_accumulation_steps: 8
+  weight_decay: 0.1
+  lr_scheduler_type: cosine
+  load_best_model_at_end: True
+  metric_for_best_model: loss
+  greater_is_better: False
+
+callbacks:
+  early_stopping_patience: 5
+
+utils:
+  seed: 42
+  overwrite_cache: False
+  max_answer_length: 140
+
+wandb:
+  use: True
+  team: next-level-potato-2 # 팀 계정
+  project: chatbot # 프로젝트 레포 이름
+  name:  # 실험자 명
+  tags: 
+
+hf_hub:
+  push_to_hub: False # whether to push to huggingface hub the pretrained model & tokenizer
+  save_name: # name to register. e.g. roberta-base-new-model

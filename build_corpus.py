@@ -8,12 +8,13 @@ from crawlers.theqoo_crawler import TheqooCrawler
 
 
 def main(args):
-    runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
+    runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%Y%m%d")
 
     if args.crawler == "naver":
         query = args.query
         naver_crawler = NaverCrawler(runtime=runtime)
-        naver_crawler(query=query, n=args.num)
+        since, until = args.range.split("~")
+        naver_crawler(query=query, n=args.num, since=since, until=until)
 
     elif args.crawler == "twitter":
         screen_name = args.screen_name
@@ -47,6 +48,14 @@ if __name__ == "__main__":
         type=int,
         help="the number of news articles to retrieve for the query",
     )
+    parser.add_argument(
+        "--range",
+        "-r",
+        default="~",
+        type=str,
+        help="YYYY-MM-DD~YYYY-MM-DD. Specify search time range for NaverCrawler",
+    )
+
     ### twitter crawling args ###
     parser.add_argument(
         "--screen_name",
