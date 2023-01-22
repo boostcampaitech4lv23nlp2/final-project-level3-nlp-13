@@ -137,9 +137,7 @@ class NaverCrawler:
         }
         return parsed
 
-
-
-    def preprocess(self, raw_data_path:Optional[str]=None):
+    def preprocess(self, raw_data_path: Optional[str] = None):
         """
         1차로 기사 제목을 기준으로 중복 제거. 동일한 columns을 가진 데이터들만 처리 가능
         csv를 인풋 path에 저장
@@ -205,7 +203,7 @@ class NaverCrawler:
             return True
         return False
 
-    def is_photo_article(self, title:str, body:str) -> bool:
+    def is_photo_article(self, title: str, body: str) -> bool:
         if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) == 1:
             return True
         return False
@@ -220,35 +218,56 @@ class NaverCrawler:
         for idx, part in enumerate(parts):
             if part == "":
                 continue
-            part = part.strip(" ")
-            if idx != len(parts) - 1 and not part.endswith(puncs):
-                # e.g. ""기사내용 요약 방탄 음원 1위""
-                continue
-            part = self.remove_info_head(part)
-            if not part.endswith(puncs):
+            part = self.remove_info_head(part.strip(" "))
+            if not part.endswith("다."):
                 part = self.remove_info_tail(part)
-                if not part.endswith(puncs):
-                    continue
+            part = re.sub(r"(?<=[가-힣])다\.(?=\w)", "다. ", part)
             cleaned.append(part)
 
         return "\n".join(cleaned)
+
+    # def remove_info(self, body: str) -> str:
+    #     """
+    #     \\n으로 split 했을 때 구두점으로 끝나지 않으면 기사의 일부분이 아니라고 간주하고 삭제
+    #     """
+    #     parts = body.split("\n")
+    #     print(parts)
+    #     puncs = (".", "!", "?")
+    #     cleaned = []
+    #     for idx, part in enumerate(parts):
+    #         if part == "":
+    #             continue
+    #         part = part.strip(" ")
+    #         if idx != len(parts) - 1 and not part.endswith(puncs):
+    #             # e.g. ""기사내용 요약 방탄 음원 1위""
+    #             continue
+    #         part = self.remove_info_head(part)
+    #         if idx == len(parts) -1:
+    #             part = self.remove_info_tail(part)
+    #             # if not part.endswith(puncs):
+    #             #     continue
+    #         cleaned.append(part)
+
+    #     return "\n".join(cleaned)
 
     def remove_info_head(self, line: str) -> str:
         """
         서두에 있는 언론사명, 기자명 등을 제거
 
         """
-        p = re.compile(r"^(\([가-힣a-zA-Z0-9= ]+\)|\[[가-힣a-zA-Z0-9= ]+\]|[가-힣a-zA-Z0-9 ]+=)+")
+        p = re.compile(
+            r"^(\([가-힣a-zA-Z0-9=\- ]+\)|\[[가-힣a-zA-Z0-9=\- ]+\]|[가-힣a-zA-Z0-9\- ]+=)+"
+        )
         line = re.sub(p, "", line)
 
-        #p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
-        #p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
-        #p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
-        #p4 = re.compile("^\[.+?\]")  # [신문사]
-        #for p in [p1, p2, p3, p4]:
+        # p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
+        # p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
+        # p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
+        # p4 = re.compile("^\[.+?\]")  # [신문사]
+        # for p in [p1, p2, p3, p4]:
         #    line = re.sub(p, "", line)
-        #m = re.match(p4, line)
-        #if m:
+        # m = re.match(p4, line)
+        # if m:
         #    line = line[m.span()[1] :]
         return line
 
@@ -259,13 +278,16 @@ class NaverCrawler:
         url: https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//  =]*)
 
         """
-
-        p = re.compile(
-            r"(?<=다\.)\s?[^\.]*(\(?[가-힣a-zA-Z ]+\)?)\s?(\(?\/?([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,})\)?)?\s?(\([가-힣 ]+\))?$"
+        line = (
+            "다. ".join(re.findall(r"(?<=다\.).+?(?=다\.)", "다. " + line.strip())) + "다."
         )
-        line = re.sub(p, "", line)
-        line = re.sub(r"(?<=다\.)\s?[▲△▶][^\.]+$", "", line)  # 수상 내역 등 정보 나열
-        return line.strip()
+
+        # p = re.compile(
+        #     r"(?<=다\.)\s?[^\.]*(\(?[가-힣a-zA-Z ]+\)?)\s?(\(?\/?([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,})\)?)?\s?(\([가-힣 ]+\))?$"
+        # )
+        # line = re.sub(p, "", line)
+        # line = re.sub(r"(?<=다\.)\s?[▲△▶][^\.]+$", "", line)  # 수상 내역 등 정보 나열
+        return line
 
     def remove_garbage(self, body: str) -> str:
         """
@@ -279,11 +301,10 @@ class NaverCrawler:
             "발로 뛰는 더팩트는 24시간 여러분의 제보를 기다립니다.▶카카오톡: '더팩트제보' 검색▶이메일: jebo@tf.co.kr▶뉴스 홈페이지: http://talk.tf.co.kr/bbs/report/write",
             "[사진]OSEN DB.",
             "[사진]OSEN DB",
-            ""
         ]
         for garb in garbage:
             body = re.sub(re.escape(garb), "", body)
-        return body.strip()
+        return body
 
     def remove_caption(self, text: str, captions: List) -> str:
         """
@@ -295,7 +316,6 @@ class NaverCrawler:
 
     def fix_encoded(self, text) -> str:
         return re.sub("\xa0", "", text)
-
 
     def save(self, query: str, run_time: str, data: dict) -> None:
         if not os.path.exists(self.save_path):

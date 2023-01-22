@@ -16,7 +16,7 @@ def main(args):
         if args.do_crawl:
             naver_crawler(query=query, n=args.num)
         if args.do_preprocess:
-            naver_crawler.preprocess(raw_data_path=args.path) # 1차 중복 제거: 기사 제목
+            naver_crawler.preprocess(raw_data_path=args.path)  # 1차 중복 제거: 기사 제목
 
     elif args.crawler == "twitter":
         screen_name = args.screen_name
@@ -70,11 +70,7 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "--path",
-        "-p",
-        type=str,
-        default=None,
-        help="path of raw_data to preprocess"
+        "--path", "-p", type=str, default=None, help="path of raw_data to preprocess"
     )
     args, _ = parser.parse_known_args()
 
