@@ -5,28 +5,6 @@ import torch
 from datasets import Dataset, DatasetDict, load_dataset
 
 
-class ChatDataset(torch.utils.data.Dataset):
-    def __init__(self, tokenizer, file_path, max_len=128):
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-        try:
-            self.data = self.load_data(file_path)
-        except:
-            self.data = load_dataset(file_path)
-
-    def load_data(self, file_path):
-        raw_data = pd.read_csv(file_path)
-        train_data = "<s>" + raw_data["Q"] + "</s>" + "<s>" + raw_data["A"] + "</s>"
-        # <s>안녕하세요</s><s> -> 네, 안녕하세요</s>
-        return self.tokenizer(list(train_data), padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
-
-    def __len__(self):
-        return len(self.data["input_ids"])
-
-    def __getitem__(self, index):
-        return (self.data["input_ids"][index], self.data["attention_mask"][index], self.data["token_type_ids"][index])
-
-
 class GPT_Dataset:
     def __init__(self, tokenizer, config):
         self.config = config
@@ -53,3 +31,47 @@ class GPT_Dataset:
             if length == self.max_len:
                 input_batch.append(input_ids)
         return {"input_ids": input_batch}
+
+
+class BART_Dataset:
+    def __init__(self, tokenizer, config):
+        self.config = config
+        self.tokenizer = tokenizer
+        self.max_len = self.config.tokenizer.max_length
+        self.raw_datasets = load_dataset(self.config.path.data)
+        self.tokenized_datasets = self.raw_datasets.map(
+            self.tokenize,
+            batched=True,
+            remove_columns=self.raw_datasets["train"].column_names,
+        )
+
+    def tokenize(self, element):
+        # questions = []
+        # answers = []
+        # for q, a in zip(element["Q"], element["A"]):
+        #     questions.append(self.tokenizer.bos_token + q + self.tokenizer.eos_token)
+        #     answers.append(self.tokenizer.bos_token + a + self.tokenizer.eos_token)
+
+        inputs = self.tokenizer(
+            # questions,
+            element["Q"],
+            padding="max_length",
+            truncation=True,
+            max_length=self.max_len,
+            return_tensors="pt",
+            return_token_type_ids=False,
+            return_attention_mask=True,
+        )
+
+        target_tokens = self.tokenizer(
+            # answers,
+            element["A"],
+            padding="max_length",
+            truncation=True,
+            max_length=self.max_len,
+            return_tensors="pt",
+            return_token_type_ids=False,
+            return_attention_mask=False,
+        )["input_ids"]
+
+        return {**inputs, "decoder_input_ids": target_tokens[:, :-1], "labels": target_tokens[:, 1:]}
