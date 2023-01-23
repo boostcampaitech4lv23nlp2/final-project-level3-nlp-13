@@ -78,7 +78,7 @@ class Enc_Dec_Chatbot:
 
     def __post_init__(self):
         self.train_dataset = self.datasets.tokenized_datasets["train"]
-        self.test_dataset = self.datasets.raw_datasets["test"]
+        self.test_dataset = self.datasets.tokenized_datasets["test"]
 
         if self.config.train_mode == "pretraining":
             if "bart" in self.config.model.name_or_path or "bart".upper() in self.config.model.name_or_path:
