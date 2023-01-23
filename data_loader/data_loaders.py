@@ -39,11 +39,20 @@ class BART_Dataset:
         self.tokenizer = tokenizer
         self.max_len = self.config.tokenizer.max_length
         self.raw_datasets = load_dataset(self.config.path.data)
-        self.tokenized_datasets = self.raw_datasets.map(
-            self.tokenize,
-            batched=True,
-            remove_columns=self.raw_datasets["train"].column_names,
-        )
+        if self.config.train_mode == "finetuning":
+            print("🔥 finetuning...")
+            self.tokenized_datasets = self.raw_datasets.map(
+                self.tokenize,
+                batched=True,
+                remove_columns=self.raw_datasets["train"].column_names,
+            )
+        elif self.config.train_mode == "pretraining":
+            print("🔥 pretraining...")
+            self.tokenized_datasets = self.raw_datasets.map(
+                self.pretrain_tokenize,
+                batched=True,
+                remove_columns=self.raw_datasets["train"].column_names,
+            )
 
     def tokenize(self, element):
         # questions = []
@@ -75,3 +84,15 @@ class BART_Dataset:
         )["input_ids"]
 
         return {**inputs, "labels": target_tokens}
+
+    def pretrain_tokenize(self, element):
+        inputs = self.tokenizer(
+            element["Q"],
+            element["A"],
+            padding="max_length",
+            truncation=True,
+            max_length=self.max_len,
+            return_tensors="pt",
+        )
+
+        return {**inputs}
