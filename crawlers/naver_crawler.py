@@ -204,7 +204,7 @@ class NaverCrawler:
         return False
 
     def is_photo_article(self, title: str, body: str) -> bool:
-        if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) == 1:
+        if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) <= 2:
             return True
         return False
 
@@ -216,12 +216,13 @@ class NaverCrawler:
         puncs = (".", "!", "?")
         cleaned = []
         for idx, part in enumerate(parts):
-            if part == "":
-                continue
             part = self.remove_info_head(part.strip(" "))
+            if part.strip() == "":
+                continue
             if not part.endswith("다."):
                 part = self.remove_info_tail(part)
             part = re.sub(r"(?<=[가-힣])다\.(?=\w)", "다. ", part)
+            part = re.sub(r"^다\.\s*$", "", part)
             cleaned.append(part)
 
         return "\n".join(cleaned)
@@ -310,8 +311,11 @@ class NaverCrawler:
         """
         기사 본문 text에 포함된 이미지 caption을 제거함.
         """
-        for caption in captions:
-            text = text.replace(caption, "")
+        # for caption in captions:
+        #    text = re.sub(r"^" + caption, "", text)
+        captions = [re.escape(cap) for cap in captions]
+        p = re.compile("(" + "|".join(captions) + ")")
+        text = re.sub(p, "", text)
         return text
 
     def fix_encoded(self, text) -> str:
