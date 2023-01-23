@@ -1,0 +1,27 @@
+data:
+  twitter_pickle_path: "./data/raw_data/twitter/ver2"
+  pickle_to_csv_path: "./data/processed_data/twitter/twitter_0123.csv"
+  inference_save_path: "./data/processed_data/twitter/twitter_0123_pred.csv"
+  final_save_path: "./data/processed_data/twitter/final/0123.csv"
+
+model:
+  name_or_path: "/opt/ml/final_project/data/twitter_data_preprocess/saved_models/beomi/KcELECTRA-base/01-23-01-44/checkpoint-2500" # beomi/KcELECTRA-base #  monologg/koelectra-base-v3-discriminator
+  resume:
+
+tokenizer:
+  max_length: 256
+  padding: max_length
+  stride: 128
+  return_token_type_ids: False # False for Roberta models
+
+train:
+  num_train_epochs: 10
+  per_device_train_batch_size: 32
+  per_device_eval_batch_size: 32
+  warmup_ratio: 0.5
+  weight_decay: 0.1
+  logging_steps: 30
+  save_steps: 30
+  evaluation_strategy: steps
+  load_best_model_at_end: True
+  greater_is_better: True
