@@ -33,7 +33,7 @@ class GPT_Dataset:
         return {"input_ids": input_batch}
 
 
-class BART_Dataset:
+class Enc_Dec_Dataset:
     def __init__(self, tokenizer, config):
         self.config = config
         self.tokenizer = tokenizer
