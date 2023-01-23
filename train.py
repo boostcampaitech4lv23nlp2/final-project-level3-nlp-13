@@ -106,8 +106,8 @@ def main(config):
         save_name = config.hf_hub.save_name
         if not save_name.startswith("nlpotato/"):
             save_name = "nlpotato/" + save_name
-        model.push_to_hub(config.hf_hub.save_name)
-        tokenizer.push_to_hub(config.hf_hub.save_name)
+        model.push_to_hub(config.hf_hub.save_name, use_auth_token=config.hf_hub.auth_token)
+        tokenizer.push_to_hub(config.hf_hub.save_name, use_auth_token=config.hf_hub.auth_token)
 
     wandb.finish()
 
