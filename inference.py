@@ -27,7 +27,7 @@ def main(config):
     generator.get_answer("여자친구 선물 추천해줘.")
     generator.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?")
     generator.get_answer("이제 그만 수업 끝내자.")
-
+    
 if __name__ == "__main__":
     # config 설정
     parser = argparse.ArgumentParser()
