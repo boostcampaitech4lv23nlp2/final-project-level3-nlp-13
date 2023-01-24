@@ -18,7 +18,7 @@ def main(config):
     model = GPT2LMHeadModel.from_pretrained(config.model.name)
     model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
-    
+
     print("🔥 get input...")
     generator = Chatbot_utils(tokenizer, model)
     generator.get_answer("안녕?")
@@ -27,8 +27,6 @@ def main(config):
     generator.get_answer("여자친구 선물 추천해줘.")
     generator.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?")
     generator.get_answer("이제 그만 수업 끝내자.")
-    generator.get_answer("사랑해")
-    generator.get_answer("정국이 존나 예쁘다")
 
 if __name__ == "__main__":
     # config 설정
