@@ -53,6 +53,15 @@ if __name__ == "__main__":
         type=int,
         help="the number of news articles to retrieve for the query",
     )
+
+    parser.add_argument(
+        "--range",
+        "-r",
+        default="~",
+        type=str,
+        help="YYYY-MM-DD~YYYY-MM-DD. Specify search time range for NaverCrawler",
+    )
+
     ### twitter crawling args ###
     parser.add_argument(
         "--screen_name",
@@ -76,4 +85,15 @@ if __name__ == "__main__":
 
     if args.do_crawl:
         assert args.path is None, "--path is preprocessing-only"
+
+    if args.range != "~":
+        import re
+
+        assert (
+            re.match(
+                r"[0-9]{4}\.[0-9]{2}\.[0-9]{2}~[0-9]{4}\.[0-9]{2}\.[0-9]{2}", args.range
+            ).group()
+            == args.range
+        ), print("Make sure the given 'range' is formatted correct")
+
     main(args)
