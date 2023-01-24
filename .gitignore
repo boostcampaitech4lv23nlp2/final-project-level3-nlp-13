@@ -210,3 +210,6 @@ best_model/
 chromedriver
 nohup.out
 .empty/
+
+# elastic retriever db data
+retriever/data
