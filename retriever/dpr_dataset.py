@@ -1,36 +1,37 @@
+import torch
 from torch.utils.data import Dataset
 
 
 class DPRDataset(Dataset):
-    def __init__(self, questions, answers, tokenizer):
-        self.questions = questions
-        self.answers = answers
+    def __init__(self, queries, contexts, tokenizer):
+        self.queries = queries
+        self.contexts = contexts
         self.tokenizer = tokenizer
 
     def __len__(self):
-        return len(self.questions)
+        return len(self.queries)
 
     def __getitem__(self, idx):
-        question = self.questions[idx]
-        answer = self.answers[idx]
+        query = self.queries[idx]
+        context = self.contexts[idx]
 
-        question_encoding = self.tokenize(question)
-        answer_encoding = self.tokenize(answer)
+        query_tensor = self.tokenize(query)
+        context_tensor = self.tokenize(context)
 
-        return {
-            "question": {
-                "input_ids": question_encoding["input_ids"].flatten(),
-                "attention_mask": question_encoding["attention_mask"].flatten(),
-                "token_type_ids": question_encoding["token_type_ids"].flatten(),
-            },
-            "answer": {
-                "input_ids": answer_encoding["input_ids"].flatten(),
-                "attention_mask": answer_encoding["attention_mask"].flatten(),
-                "token_type_ids": answer_encoding["token_type_ids"].flatten(),
-            },
-        }
+        return (
+            query_tensor["input_ids"],
+            query_tensor["attention_mask"],
+            query_tensor["token_type_ids"],
+            context_tensor["input_ids"],
+            context_tensor["attention_mask"],
+            context_tensor["token_type_ids"],
+        )
 
     def tokenize(self, input):
-        encoding = self.tokenizer(input, truncation=True, padding="max_length", max_length=128, return_tensors="pt")
-
-        return encoding
+        return self.tokenizer(
+            input,
+            truncation=True,
+            padding="max_length",
+            max_length=128,
+            return_tensors="pt",
+        )
