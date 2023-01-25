@@ -62,8 +62,8 @@ class NaverCrawler:
         [Args]
             - query: 검색어
             - n: 크롤링할 (최대) 기사수
-            - since: YYYY-MM-DD. 검색기간 시작일
-            - until: YYYY-MM-DD. 검색기간 마지막일
+            - since: YYYY.MM.DD. 검색기간 시작일
+            - until: YYYY.MM.DD. 검색기간 마지막일
         """
         output = {
             "info": {
