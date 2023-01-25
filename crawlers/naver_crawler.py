@@ -321,7 +321,7 @@ class NaverCrawler:
         cosine_simils = cosine_similarity(dtm, dtm)
 
         outs = []
-        dup_indices = []
+        dup_indices = set()
         for idx, simils_per_ex in enumerate(cosine_simils):
             if idx in dup_indices:
                 continue
@@ -330,7 +330,7 @@ class NaverCrawler:
             dup_ls = [
                 ind for ind in indices_ranked if scores[ind] >= threshold and ind != idx
             ]
-            dup_indices.extend(dup_ls)
+            dup_indices.update(dup_ls)
             outs.append(
                 {
                     "title": df["title"].iloc[idx],
