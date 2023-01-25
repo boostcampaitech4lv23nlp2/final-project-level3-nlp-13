@@ -283,7 +283,7 @@ class NaverCrawler:
         """
         for caption in captions:
             text = re.subn(re.escape(caption), "", text, 1)[0]
-   
+
         return text
 
     def fix_encoded(self, text) -> str:
