@@ -231,7 +231,7 @@ class NaverCrawler:
                 continue
             if not part.endswith("다."):
                 part = self.remove_info_tail(part)
-            part = re.sub(r"(?<=[가-힣])다\.(?=\w)", "다. ", part)
+            part = re.sub(r"(?<=[가-힣])다\.(?=[가-힣A-Za-z0-9\"\'])", "다. ", part)
             part = re.sub(r"^다\.\s*$", "", part)
             cleaned.append(part)
 
