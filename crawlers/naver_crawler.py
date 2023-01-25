@@ -214,7 +214,7 @@ class NaverCrawler:
         return False
 
     def is_photo_article(self, title: str, body: str) -> bool:
-        if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) <= 2:
+        if re.search(r"(포토\s?(?!카드)|영상|사진)", title) and len(body.split("\n")) <= 2:
             return True
         return False
 
@@ -346,7 +346,7 @@ class NaverCrawler:
         self.tagger = self.get_tagger()
 
         # drop same articles w/ exactly same titles
-        df.drop_duplicates(subset=["title"], inplace=True)
+        df.drop_duplicates(subset=["title", "body"], inplace=True)
         df.dropna(axis=0, how="any", inplace=True)
 
         # drop articles w/ same topics
