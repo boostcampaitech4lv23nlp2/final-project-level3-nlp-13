@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import DBSCAN
 
 
 class NaverCrawler:
@@ -170,12 +171,37 @@ class NaverCrawler:
         df.sort_values(by="written_at", ascending=False, inplace=True)
         start = time.time()
         df = df.apply(lambda row: pd.Series(self.preprocess_example(row)), axis=1)
-        df = self.drop_duplicates(
-            df, max_features=1024, alpha=1.5, beta=0.8, threshold=0.6
-        )
+        # df = self.drop_duplicates(
+        #    df, max_features=1024, alpha=1.5, beta=0.8, threshold=0.6
+        # )
+        df = self.drop_duplicates_by_clusters(df)
 
         print(f"Took {time.time()-start}s for preprocessing")
         self.save_csv(df, "naver_corpus_1st")
+
+    def drop_duplicates_by_clusters(self, df, eps: float = 0.5, min_samples: int = 2):
+        self.tagger = self.get_tagger()
+
+        # drop same articles w/ exactly same titles
+        df.drop_duplicates(subset=["title", "body"], inplace=True)
+        df.dropna(axis=0, how="any", inplace=True)
+
+        # drop articles w/ same topics
+        texts = df["body"].apply(lambda x: self.normalize(x)).to_numpy()
+
+        vectorizer = TfidfVectorizer(
+            min_df=3,
+            ngram_range=(1, 3),
+            tokenizer=self.tokenize,
+        )
+        vectors = vectorizer.fit_transform(texts)
+        clusters = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(vectors)
+
+        df["cluster"] = clusters
+        print(set(clusters))
+        df.drop_duplicates(subset=["cluster"], inplace=True)
+        df.dropna(axis=0, how="any", inplace=True)
+        return df
 
     def preprocess_example(self, example: dict) -> dict:
         title, body, img_captions, writer, written_at, _from = (
@@ -406,6 +432,18 @@ class NaverCrawler:
         csv_path = os.path.join(save_path, f"{save_name}.csv")
         df.to_csv(csv_path, index=False)
         print(f"Saved_to {csv_path}")
+
+    def cluster(self, texts, eps: float = 0.5, min_samples=2):
+        from sklearn.cluster import DBSCAN
+
+        vectorizer = TfidfVectorizer(
+            min_df=3,
+            ngram_range=(1, 3),
+            tokenizer=self.tokenize,
+        )
+        vectors = vectorizer.fit_transform(texts)
+        clusters = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(vectors)
+        return clusters
 
 
 # from dotenv import load_dotenv
