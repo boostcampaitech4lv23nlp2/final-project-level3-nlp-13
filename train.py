@@ -34,7 +34,7 @@ def main(config):
         or "t5" in config.model.name_or_path
         or "t5".upper() in config.model.name_or_path
     ):
-        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path)
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path, bos_token="</s>")
         train_dataset = Enc_Dec_Dataset(tokenizer=tokenizer, config=config)
 
     print("🔥 get model...")
