@@ -2,11 +2,17 @@ import pickle
 import os
 import re
 import time
+import datetime
+from pathlib import Path
 from typing import List, Union, Optional
 
 import requests as req
+import numpy as np
+import pandas as pd
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class NaverCrawler:
@@ -19,6 +25,7 @@ class NaverCrawler:
         self.headers = {
             "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36"
         }
+        self.tagger = None
 
     def get_news_urls(
         self, query: str = "bts", start: int = 1, since: str = "", until: str = ""
@@ -102,7 +109,7 @@ class NaverCrawler:
         print(
             f"Crawled {len(output['data'])} articles from the given query '{query}'"
         )  # TO-DO: change to logger
-        self.save(query=query, run_time=self.runtime, data=output)
+        self.save_pickle(query=query, run_time=self.runtime, data=output)
 
     def parse(self, soup) -> dict:
         """
@@ -142,9 +149,6 @@ class NaverCrawler:
         1차로 기사 제목을 기준으로 중복 제거. 동일한 columns을 가진 데이터들만 처리 가능
         csv를 인풋 path에 저장
         """
-        import time
-        import pandas as pd
-        from pathlib import Path
 
         raw_data_path = self.pickle_path if raw_data_path is None else raw_data_path
         path = Path(raw_data_path)
@@ -158,24 +162,29 @@ class NaverCrawler:
             with p.open("rb") as f:
                 saved = pickle.load(f)
                 df = pd.DataFrame(saved["data"])
+                df.update(saved["data"])
+                df["from"] = str(p)
                 ls.append(df)
 
         df = pd.concat(ls)
+        df.sort_values(by="written_at", ascending=False, inplace=True)
         start = time.time()
-
         df = df.apply(lambda row: pd.Series(self.preprocess_example(row)), axis=1)
-        df.drop_duplicates(inplace=True)
-        df.dropna(axis=0, how="any", inplace=True)
+        df = self.drop_duplicates(
+            df, max_features=1024, alpha=1.5, beta=0.8, threshold=0.6
+        )
+
         print(f"Took {time.time()-start}s for preprocessing")
-        df.to_csv(path / "preprocessed.csv", index=False)
+        self.save_csv(df, "naver_corpus_1st")
 
     def preprocess_example(self, example: dict) -> dict:
-        title, body, img_captions, writer, written_at = (
+        title, body, img_captions, writer, written_at, _from = (
             example["title"],
             example["body"],
             example["caption"],
             example["writer"],
             example["written_at"],
+            example["from"],
         )
         title, body = title.strip(), body.strip()
         written_at = written_at.split()[0]
@@ -185,6 +194,7 @@ class NaverCrawler:
             "body_unprocessed": body,
             "body": None,
             "written_at": written_at,
+            "from": _from.split("/")[-1].replace(".pickle", ""),
         }
 
         if self.is_photo_article(title, body) or not self.is_kor_article(title):
@@ -204,7 +214,7 @@ class NaverCrawler:
         return False
 
     def is_photo_article(self, title: str, body: str) -> bool:
-        if re.search(r"포토\s?(?!카드)", title) and len(body.split("\n")) <= 2:
+        if re.search(r"(포토\s?(?!카드)|영상|사진)", title) and len(body.split("\n")) <= 2:
             return True
         return False
 
@@ -311,17 +321,115 @@ class NaverCrawler:
         """
         기사 본문 text에 포함된 이미지 caption을 제거함.
         """
-        # for caption in captions:
-        #    text = re.sub(r"^" + caption, "", text)
-        captions = [re.escape(cap) for cap in captions]
-        p = re.compile("(" + "|".join(captions) + ")")
-        text = re.sub(p, "", text)
+        for caption in captions:
+            text = re.subn(re.escape(caption), "", text, 1)[0]
+        # captions = [re.escape(cap) for cap in captions]
+        # p = re.compile("(" + "|".join(captions) + ")")
+        # text = re.sub(p, "", text)
         return text
 
     def fix_encoded(self, text) -> str:
         return re.sub("\xa0", "", text)
 
-    def save(self, query: str, run_time: str, data: dict) -> None:
+    def drop_duplicates(
+        self,
+        df: pd.DataFrame,
+        max_features: int = 1024,
+        alpha: float = 1.5,
+        beta: float = 0.8,
+        threshold: float = 0.6,
+    ) -> pd.DataFrame:
+        """
+        제목의 tfidf vector로 계산한 cosine similarity에 날짜로 만든 가중치(기사 작성일이 하루 차이면 1.5, 이외 경우는 0.8)를 곱해 기준치(0.6)을 넘으면 중복 테마의 기사로 간주하고 첫 기사만 남겨두고 제거.
+
+        """
+        self.tagger = self.get_tagger()
+
+        # drop same articles w/ exactly same titles
+        df.drop_duplicates(subset=["title", "body"], inplace=True)
+        df.dropna(axis=0, how="any", inplace=True)
+
+        # drop articles w/ same topics
+        df["title"] = df["title"].apply(lambda x: self.normalize(x))
+        texts = df["title"].to_numpy()
+        vectorizer = TfidfVectorizer(
+            max_features=max_features,
+            tokenizer=self.tokenize,
+        )
+        dtm = vectorizer.fit_transform(texts)
+        dates = [
+            datetime.date(*map(int, date[:-1].split("."))) for date in df.written_at
+        ]
+        cosine_simils = cosine_similarity(dtm, dtm)
+
+        outs = []
+        dup_indices = []
+        for idx, simils_per_ex in enumerate(cosine_simils):
+            if idx in dup_indices:
+                continue
+            indices_ranked, scores = self.rank(idx, cosine_simils, dates, alpha, beta)
+
+            dup_ls = [
+                ind for ind in indices_ranked if scores[ind] >= threshold and ind != idx
+            ]
+            dup_indices.extend(dup_ls)
+            outs.append(
+                {
+                    "title": df["title"].iloc[idx],
+                    "body": df["body"].iloc[idx],
+                    "written_at": df["written_at"].iloc[idx],
+                    "from": df["from"].iloc[idx],
+                }
+            )
+        new_df = pd.DataFrame.from_dict(outs)
+        return new_df
+
+    def normalize(self, text: str) -> str:
+        """
+        기사 제목을 tf-idf 벡터로 만들기 전에 정규화.
+
+        """
+        text = re.sub("BTS", "방탄소년단", text)
+        text = re.sub(r"(^\[.+?\]|\[.+?\]$)", "", text)
+        text = re.sub(r"[^가-힣0-9A-Za-z一-龥 ]", " ", text)
+        text = re.sub(r"\s{2,}", " ", text).strip()
+        text = re.sub(r"(?<=[가-힣])X(?=[가-힣])", " ", text)
+        return text
+
+    def get_tagger(self):
+        from kiwipiepy import Kiwi
+
+        kiwi = Kiwi()
+        for word in ["방탄소년단", "진", "정국", "지민", "RM", "슈가", "제이홉", "뷔"]:
+            kiwi.add_user_word(word, "NNP")
+        return kiwi
+
+    def tokenize(self, text):
+        assert self.tagger is not None, "Tagger must be initialized first"
+        return [token.form for token in self.tagger.tokenize(text)]
+
+    def rank(
+        self,
+        idx: int,
+        cosine_simils: np.ndarray,
+        dates: List[datetime.date],
+        alpha: float,
+        beta: float,
+    ):
+        """
+        기준 date(criterion)과 dates를 비교. 차이가 작을수록 점수를 높여줌.
+        """
+        criterion = dates[idx]
+        diffs = [abs(criterion - d) for d in dates]
+        diffs = np.array(
+            [alpha if diff <= datetime.timedelta(days=1) else beta for diff in diffs]
+        )
+        scores = cosine_simils[idx] * diffs  # element-wise multiplication
+        indices = np.argsort(-scores)
+
+        return indices, scores
+
+    def save_pickle(self, query: str, run_time: str, data: dict) -> None:
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
@@ -332,6 +440,14 @@ class NaverCrawler:
             if len(data["data"]) > 0:
                 pickle.dump(data, f)
                 print(f"Saved to {self.pickle_path}")
+
+    def save_csv(self, df: pd.DataFrame, save_name: str) -> None:
+        save_path = "data/preprocessed_data/naver/"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        csv_path = os.path.join(save_path, f"{save_name}.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"Saved_to {csv_path}")
 
 
 # from dotenv import load_dotenv
