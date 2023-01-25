@@ -5,6 +5,7 @@ import pytz
 from crawlers.naver_crawler import NaverCrawler
 from crawlers.twitter_crawler import TwitterCrawler
 from crawlers.theqoo_crawler import TheqooCrawler
+from crawlers.aihub_crawler import NewsCrawler, CommentCrawler
 
 
 def main(args):
@@ -30,6 +31,18 @@ def main(args):
         if args.do_crawl:
             theqoo_crawler(n=args.num)
 
+    elif args.crawler == "aihub":
+        if args.query == "news":
+            directory = "data/raw_data/aihub/news" if args.path is None else args.path
+            aihub_crawler = NewsCrawler(directory)
+            aihub_crawler()
+        elif args.query == "comment":
+            directory = (
+                "data/raw_data/aihub/comment" if args.path is None else args.path
+            )
+            aihub_crawler = CommentCrawler(directory)
+            aihub_crawler()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -37,7 +50,7 @@ if __name__ == "__main__":
         "--crawler",
         "-c",
         type=str,
-        choices=["naver", "twitter", "theqoo"],
+        choices=["naver", "twitter", "theqoo", "aihub"],
         required=True,
         help="the type of crawler to use",
     )
