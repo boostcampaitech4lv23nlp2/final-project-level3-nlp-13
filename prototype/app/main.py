@@ -15,7 +15,7 @@ from utils.util import Chatbot_utils
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", "-c", type=str, default="base_config")
 args, _ = parser.parse_known_args()
-config = OmegaConf.load(f"../config/{args.config}.yaml")
+config = OmegaConf.load(f"config/{args.config}.yaml")
 
 app = FastAPI()
 
@@ -29,7 +29,7 @@ class User_input(BaseModel):
 
 @app.post("/input", description="주문을 요청합니다")
 async def make_chat(data: User_input, model: AutoModelForSeq2SeqLM = Depends(get_model)):
-    model = get_model("../" + config.model.name_or_path)
+    model = get_model(config.model.name_or_path)
     generator = Chatbot_utils(config, model=model[0], tokenizer=model[1])
     text = data.dict()["sentence"]
     max_len = data.dict()["max_len"]
