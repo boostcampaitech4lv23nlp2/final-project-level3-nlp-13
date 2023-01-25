@@ -237,30 +237,6 @@ class NaverCrawler:
 
         return "\n".join(cleaned)
 
-    # def remove_info(self, body: str) -> str:
-    #     """
-    #     \\n으로 split 했을 때 구두점으로 끝나지 않으면 기사의 일부분이 아니라고 간주하고 삭제
-    #     """
-    #     parts = body.split("\n")
-    #     print(parts)
-    #     puncs = (".", "!", "?")
-    #     cleaned = []
-    #     for idx, part in enumerate(parts):
-    #         if part == "":
-    #             continue
-    #         part = part.strip(" ")
-    #         if idx != len(parts) - 1 and not part.endswith(puncs):
-    #             # e.g. ""기사내용 요약 방탄 음원 1위""
-    #             continue
-    #         part = self.remove_info_head(part)
-    #         if idx == len(parts) -1:
-    #             part = self.remove_info_tail(part)
-    #             # if not part.endswith(puncs):
-    #             #     continue
-    #         cleaned.append(part)
-
-    #     return "\n".join(cleaned)
-
     def remove_info_head(self, line: str) -> str:
         """
         서두에 있는 언론사명, 기자명 등을 제거
@@ -270,16 +246,6 @@ class NaverCrawler:
             r"^(\([가-힣a-zA-Z0-9=\- ]+\)|\[[가-힣a-zA-Z0-9=\- ]+\]|[가-힣a-zA-Z0-9\- ]+=)+"
         )
         line = re.sub(p, "", line)
-
-        # p1 = re.compile("[^\.]+[\[\(].+[\]\)].+기자 =")  # [서울=신문사] 똉땡이 기자 =
-        # p2 = re.compile("\[[^\.]+기자\]")  # [신문사=땡땡이 기자]
-        # p3 = re.compile("[\[\(].+[\]\)] =")  # (서울=뉴스) =
-        # p4 = re.compile("^\[.+?\]")  # [신문사]
-        # for p in [p1, p2, p3, p4]:
-        #    line = re.sub(p, "", line)
-        # m = re.match(p4, line)
-        # if m:
-        #    line = line[m.span()[1] :]
         return line
 
     def remove_info_tail(self, line: str) -> str:
@@ -292,12 +258,6 @@ class NaverCrawler:
         line = (
             "다. ".join(re.findall(r"(?<=다\.).+?(?=다\.)", "다. " + line.strip())) + "다."
         )
-
-        # p = re.compile(
-        #     r"(?<=다\.)\s?[^\.]*(\(?[가-힣a-zA-Z ]+\)?)\s?(\(?\/?([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,})\)?)?\s?(\([가-힣 ]+\))?$"
-        # )
-        # line = re.sub(p, "", line)
-        # line = re.sub(r"(?<=다\.)\s?[▲△▶][^\.]+$", "", line)  # 수상 내역 등 정보 나열
         return line
 
     def remove_garbage(self, body: str) -> str:
@@ -323,9 +283,7 @@ class NaverCrawler:
         """
         for caption in captions:
             text = re.subn(re.escape(caption), "", text, 1)[0]
-        # captions = [re.escape(cap) for cap in captions]
-        # p = re.compile("(" + "|".join(captions) + ")")
-        # text = re.sub(p, "", text)
+   
         return text
 
     def fix_encoded(self, text) -> str:
