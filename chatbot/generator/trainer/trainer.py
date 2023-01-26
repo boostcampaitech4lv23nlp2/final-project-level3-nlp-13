@@ -80,33 +80,17 @@ class Enc_Dec_Chatbot:
         self.train_dataset = self.datasets.tokenized_datasets["train"]
         self.test_dataset = self.datasets.tokenized_datasets["test"]
 
-        if self.config.train_mode == "pretraining":
-            if "bart" in self.config.model.name_or_path or "bart".upper() in self.config.model.name_or_path:
-                self.data_collator = DataCollatorForWholeWordMask(tokenizer=self.tokenizer, return_tensors="pt")
-            elif "t5" in self.config.model.name_or_path or "t5".upper() in self.config.model.name_or_path:
-                self.data_collator = DataCollatorForLanguageModeling(self.tokenizer, mlm=False, return_tensors="pt")
-            # Trainer 초기화
-            self.trainer = Seq2SeqTrainer(
-                model=self.model,
-                args=self.training_args,
-                train_dataset=self.train_dataset,
-                eval_dataset=self.train_dataset,
-                tokenizer=self.tokenizer,
-                data_collator=self.data_collator,
-                callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
-            )
-        elif self.config.train_mode == "finetuning":
-            self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
-            # Trainer 초기화
-            self.trainer = Seq2SeqTrainer(
-                model=self.model,
-                args=self.training_args,
-                train_dataset=self.train_dataset,
-                eval_dataset=self.test_dataset,
-                tokenizer=self.tokenizer,
-                data_collator=self.data_collator,
-                callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
-            )
+        self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
+        # Trainer 초기화
+        self.trainer = Seq2SeqTrainer(
+            model=self.model,
+            args=self.training_args,
+            train_dataset=self.train_dataset,
+            eval_dataset=self.test_dataset,
+            tokenizer=self.tokenizer,
+            data_collator=self.data_collator,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
+        )
 
     def train(self, checkpoint=None):
         train_result = self.trainer.train(resume_from_checkpoint=checkpoint)

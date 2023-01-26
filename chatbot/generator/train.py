@@ -39,16 +39,21 @@ def main(config):
 
     print("🔥 get model...")
     if "gpt" in config.model.name_or_path:
-        model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
-        model.resize_token_embeddings(len(tokenizer))
+        if "pretraining" in config.model.name_or_path:
+            model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path, from_flax=True)
+        else:
+            model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
     elif (
         "bart" in config.model.name_or_path
         or "bart".upper() in config.model.name_or_path
         or "t5" in config.model.name_or_path
         or "t5".upper() in config.model.name_or_path
     ):
-        model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
-        model.resize_token_embeddings(len(tokenizer))
+        if "pretraining" in config.model.name_or_path:
+            model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path, from_flax=True)
+        else:
+            model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
+    model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
 
     print("🔥 start training...")
@@ -121,7 +126,7 @@ if __name__ == "__main__":
     config = OmegaConf.load(f"./config/{args.config}.yaml")
 
     # fix random seeds for reproducibility
-    SEED = 123
+    SEED = 42
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
