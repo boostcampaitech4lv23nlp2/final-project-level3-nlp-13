@@ -169,7 +169,7 @@ cython_debug/
 
 lightning_logs
 
-# data
+data
 .vscode-server
 .nv
 .local
@@ -201,15 +201,9 @@ config/*
 !config/base_config.yaml
 outputs/
 
-data/processed_data/
-data/raw_data/
 data/*.csv
 data/*.pickle
 prediction/
 best_model/
-chromedriver
+klue-roberta-retrained/
 nohup.out
-.empty/
-
-# elastic retriever db data
-retriever/data
