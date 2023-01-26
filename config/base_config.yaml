@@ -20,8 +20,6 @@ optimizer: # default AdamW
   lr_scheduler_type: linear
   warmup_ratio: 0.5
 
-train_mode:  # finetuning or pretraining
-
 train:
   num_train_epochs: 3
   fp16: True
