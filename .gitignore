@@ -205,6 +205,5 @@ data/*.csv
 data/*.pickle
 prediction/
 best_model/
-chromedriver
+klue-roberta-retrained/
 nohup.out
-.empty/
