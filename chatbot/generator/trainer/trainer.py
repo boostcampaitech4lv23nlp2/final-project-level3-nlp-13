@@ -10,6 +10,7 @@ from transformers import (
     AutoTokenizer,
     DataCollatorForLanguageModeling,
     DataCollatorForSeq2Seq,
+    DataCollatorForWholeWordMask,
     EarlyStoppingCallback,
     EvalPrediction,
     Seq2SeqTrainer,
@@ -68,7 +69,7 @@ class GPT_Chatbot:
 
 
 @dataclass
-class BART_Chatbot:
+class Enc_Dec_Chatbot:
     config: omegaconf.dictconfig.DictConfig
     training_args: TrainingArguments
     tokenizer: AutoTokenizer
@@ -78,18 +79,34 @@ class BART_Chatbot:
     def __post_init__(self):
         self.train_dataset = self.datasets.tokenized_datasets["train"]
         self.test_dataset = self.datasets.tokenized_datasets["test"]
-        self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
 
-        # Trainer 초기화
-        self.trainer = Seq2SeqTrainer(
-            model=self.model,
-            args=self.training_args,
-            train_dataset=self.train_dataset,
-            eval_dataset=self.test_dataset,
-            tokenizer=self.tokenizer,
-            data_collator=self.data_collator,
-            callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
-        )
+        if self.config.train_mode == "pretraining":
+            if "bart" in self.config.model.name_or_path or "bart".upper() in self.config.model.name_or_path:
+                self.data_collator = DataCollatorForWholeWordMask(tokenizer=self.tokenizer, return_tensors="pt")
+            elif "t5" in self.config.model.name_or_path or "t5".upper() in self.config.model.name_or_path:
+                self.data_collator = DataCollatorForLanguageModeling(self.tokenizer, mlm=False, return_tensors="pt")
+            # Trainer 초기화
+            self.trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.train_dataset,
+                tokenizer=self.tokenizer,
+                data_collator=self.data_collator,
+                callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
+            )
+        elif self.config.train_mode == "finetuning":
+            self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
+            # Trainer 초기화
+            self.trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.test_dataset,
+                tokenizer=self.tokenizer,
+                data_collator=self.data_collator,
+                callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
+            )
 
     def train(self, checkpoint=None):
         train_result = self.trainer.train(resume_from_checkpoint=checkpoint)
@@ -105,7 +122,7 @@ class BART_Chatbot:
         output_train_file = os.path.join(self.training_args.output_dir, "train_results.txt")
 
         with open(output_train_file, "w") as writer:
-            logger.info("*****BART Train results *****")
+            logger.info("*****Enc-Dec Train results *****")
             for key, value in sorted(train_result.metrics.items()):
                 logger.info(f"{key} = {value}")
                 writer.write(f"{key} = {value}\n")

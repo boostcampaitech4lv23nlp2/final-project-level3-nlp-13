@@ -10,7 +10,12 @@ class Chatbot_utils:
     def encoding(self, text):
         if "gpt" in self.config.model.name_or_path:
             text = self.tokenizer.bos_token + text + self.tokenizer.sep_token
-        elif "bart" in self.config.model.name_or_path:
+        elif (
+            "bart" in self.config.model.name_or_path
+            or "bart".upper() in self.config.model.name_or_path
+            or "t5" in self.config.model.name_or_path
+            or "t5".upper() in self.config.model.name_or_path
+        ):
             text = self.tokenizer.bos_token + text + self.tokenizer.eos_token
         return torch.tensor(self.tokenizer.encode(text)).unsqueeze(0).to("cuda")
 

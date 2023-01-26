@@ -6,9 +6,9 @@ import numpy as np
 import pytz
 import torch
 import wandb
-from data_loader.data_loaders import BART_Dataset, GPT_Dataset
+from data_loader.data_loaders import Enc_Dec_Dataset, GPT_Dataset
 from omegaconf import OmegaConf
-from trainer.trainer import BART_Chatbot, GPT_Chatbot
+from trainer.trainer import Enc_Dec_Chatbot, GPT_Chatbot
 from transformers import AutoModelForSeq2SeqLM, GPT2LMHeadModel, PreTrainedTokenizerFast, Seq2SeqTrainingArguments, TrainingArguments
 
 
@@ -28,15 +28,25 @@ def main(config):
             mask_token="<mask>",
         )
         train_dataset = GPT_Dataset(tokenizer=tokenizer, config=config)
-    elif "bart" in config.model.name_or_path:
-        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path)
-        train_dataset = BART_Dataset(tokenizer=tokenizer, config=config)
+    elif (
+        "bart" in config.model.name_or_path
+        or "bart".upper() in config.model.name_or_path
+        or "t5" in config.model.name_or_path
+        or "t5".upper() in config.model.name_or_path
+    ):
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path, bos_token="</s>")
+        train_dataset = Enc_Dec_Dataset(tokenizer=tokenizer, config=config)
 
     print("🔥 get model...")
     if "gpt" in config.model.name_or_path:
         model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
         model.resize_token_embeddings(len(tokenizer))
-    elif "bart" in config.model.name_or_path:
+    elif (
+        "bart" in config.model.name_or_path
+        or "bart".upper() in config.model.name_or_path
+        or "t5" in config.model.name_or_path
+        or "t5".upper() in config.model.name_or_path
+    ):
         model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
         model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
@@ -45,9 +55,14 @@ def main(config):
     now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
     data_path = re.sub(".+/", "", config.path.data)
     file_name = f"saved_models/{config.model.name_or_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
-    if "gpt" in config.model.name_or_path:
+    if "gpt" in config.model.name_or_path or "gpt".upper() in config.model.name_or_path:
         training_args = TrainingArguments(**config.train, output_dir=file_name)
-    elif "bart" in config.model.name_or_path:
+    elif (
+        "bart" in config.model.name_or_path
+        or "bart".upper() in config.model.name_or_path
+        or "t5" in config.model.name_or_path
+        or "t5".upper() in config.model.name_or_path
+    ):
         training_args = Seq2SeqTrainingArguments(**config.train, output_dir=file_name)
 
     if config.wandb.use:
@@ -70,8 +85,13 @@ def main(config):
             model=model,
             datasets=train_dataset,
         )
-    elif "bart" in config.model.name_or_path:
-        trainer = BART_Chatbot(
+    elif (
+        "bart" in config.model.name_or_path
+        or "bart".upper() in config.model.name_or_path
+        or "t5" in config.model.name_or_path
+        or "t5".upper() in config.model.name_or_path
+    ):
+        trainer = Enc_Dec_Chatbot(
             config=config,
             training_args=training_args,
             tokenizer=tokenizer,
@@ -86,8 +106,8 @@ def main(config):
         save_name = config.hf_hub.save_name
         if not save_name.startswith("nlpotato/"):
             save_name = "nlpotato/" + save_name
-        model.push_to_hub(config.hf_hub.save_name)
-        tokenizer.push_to_hub(config.hf_hub.save_name)
+        model.push_to_hub(config.hf_hub.save_name, use_auth_token=config.hf_hub.auth_token)
+        tokenizer.push_to_hub(config.hf_hub.save_name, use_auth_token=config.hf_hub.auth_token)
 
     wandb.finish()
 
