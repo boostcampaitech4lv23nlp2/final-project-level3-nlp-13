@@ -2,9 +2,12 @@ import argparse
 import datetime
 import pytz
 
-from crawlers.naver_crawler import NaverCrawler
-from crawlers.twitter_crawler import TwitterCrawler
-from crawlers.theqoo_crawler import TheqooCrawler
+from crawlers import (
+    NaverCrawler,
+    TwitterCrawler,
+    TheqooCrawler,
+    KinCrawler,
+)
 
 
 def main(args):
@@ -26,6 +29,12 @@ def main(args):
         theqoo_crawler = TheqooCrawler()
         theqoo_crawler(n=args.num)
 
+    elif args.crawler == "kin":
+        query = args.query
+        n = args.num
+        kin_crawler = KinCrawler(runtime=runtime)
+        kin_crawler(query=query, n=n)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -33,7 +42,7 @@ if __name__ == "__main__":
         "--crawler",
         "-c",
         type=str,
-        choices=["naver", "twitter", "theqoo"],
+        choices=["naver", "twitter", "theqoo", "kin"],
         help="the type of crawler to use",
     )
     parser.add_argument(
@@ -56,7 +65,6 @@ if __name__ == "__main__":
         help="YYYY-MM-DD~YYYY-MM-DD. Specify search time range for NaverCrawler",
     )
 
-    ### twitter crawling args ###
     parser.add_argument(
         "--screen_name",
         "-s",
