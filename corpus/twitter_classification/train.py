@@ -21,7 +21,7 @@ def main(config):
     tokenizer = ElectraTokenizer.from_pretrained(config.model.name_or_path)
 
     # load csv
-    df = pd.read_csv("/opt/ml/final_project/data/processed_data/twitter/twitter_0117_labeled_final.csv")
+    df = pd.read_csv(config.data.train_data_path, encoding="utf-8")
 
     # split train and eval stratified
     train_df, eval_df = train_test_split(df, test_size=0.1, random_state=SEED, stratify=df["label"], shuffle=True)
@@ -46,8 +46,7 @@ def main(config):
         greater_is_better=True,
         save_total_limit=2,
         evaluation_strategy="steps",
-        output_dir=f"./data/twitter_classification/saved_models/{config.model.name_or_path}/{now_time}",
-        logging_dir=f"./data/twitter_classification/logs/{now_time}",
+        output_dir=f"./corpus/twitter_classification/saved_models/{config.model.name_or_path}/{now_time}",
     )
 
     trainer = Trainer(
@@ -68,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str, default="tweet_classification_config")
 
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./data/twitter_classification/{args.config}.yaml")
+    config = OmegaConf.load(f"./corpus/twitter_classification/{args.config}.yaml")
 
     # fix random seeds for reproducibility
     SEED = 123

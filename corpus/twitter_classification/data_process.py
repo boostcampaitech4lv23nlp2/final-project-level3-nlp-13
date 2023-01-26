@@ -71,7 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str, default="tweet_classification_config")
 
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./data/twitter_data_preprocess/{args.config}.yaml")
+    config = OmegaConf.load(f"./corpus/twitter_classification/{args.config}.yaml")
 
     # fix random seeds for reproducibility
     SEED = 123
@@ -103,6 +103,15 @@ if __name__ == "__main__":
     # URL을 제거했을 때 공백인 경우(question, answer) 제거
     df = df[df["Q"] != ""]
     df = df[df["A"] != ""]
+
+    # Q와 A가 완전 동일한 데이터 제거
+    df["Q+A"] = df["Q"] + df["A"]
+    df = df.drop_duplicates(["Q+A"])
+    df = df.drop(["Q+A"], axis=1)
+
+    # Q가 중복되는 것이 5개 이상인 경우 5개까지만 사용
+    df = df.groupby("Q").head(5)
+    df = df.reset_index(drop=True)
 
     # 데이터프레임 csv로 저장
     df.to_csv(config.data.pickle_to_csv_path, index=False, encoding="utf-8-sig")
