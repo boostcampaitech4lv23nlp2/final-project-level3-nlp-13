@@ -34,13 +34,13 @@ class DPRTrainer:
         self.db_answers_data = train_data["A"] + valid_data["A"]
 
         # logger 설정
-        if not os.path.exists("./retriever/logs"):
-            os.makedirs("./retriever/logs")
-            with open("./retriever/logs/dpr_log.log", "w+") as f:
+        if not os.path.exists("./chatbot/retriever/dpr/logs"):
+            os.makedirs("./chatbot/retriever/dpr/logs")
+            with open("./chatbot/retriever/dpr/logs/dpr_log.log", "w+") as f:
                 f.write("***** Make Log File *****\n")
         LOG_FORMAT = "%(asctime)s - %(message)s"
         logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S", handlers=[logging.StreamHandler(sys.stdout)])
-        file_handler = logging.FileHandler("./retriever/logs/dpr_log.log", mode="a", encoding="utf-8")
+        file_handler = logging.FileHandler("./chatbot/retriever/dpr/logs/dpr_log.log", mode="a", encoding="utf-8")
         file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
         logger.addHandler(file_handler)
 
@@ -115,9 +115,9 @@ class DPRTrainer:
             # p_embs = np.array(p_embs)
             p_embs = torch.Tensor(p_embs)  # (num_of_passages, 768)
 
-        if not os.path.exists("./retriever/saved_models/dpr/passage_embs"):
-            os.makedirs("./retriever/saved_models/dpr/passage_embs")
-        with open(f"./retriever/saved_models/dpr/passage_embs/p_embs_{epoch+1}.bin", "wb") as f:
+        if not os.path.exists("./chatbot/retriever/dpr/saved_models/passage_embs"):
+            os.makedirs("./chatbot/retriever/dpr/saved_models/passage_embs")
+        with open(f"./chatbot/retriever/dpr/saved_models/passage_embs/p_embs_{epoch+1}.bin", "wb") as f:
             pickle.dump(p_embs, f)
 
         # question embedding 생성
@@ -214,13 +214,13 @@ class DPRTrainer:
 
             if top_1 > best_top_1:
                 best_top_1 = top_1
-                self.q_encoder.save_pretrained("./retriever/saved_models/dpr/q_encoder/q_encoder_best_top_1")
-                self.p_encoder.save_pretrained("./retriever/saved_models/dpr/p_encoder/p_encoder_best_top_1")
+                self.q_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/q_encoder_best_top_1")
+                self.p_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/p_encoder_best_top_1")
             if top_3 > best_top_3:
                 best_top_3 = top_3
-                self.q_encoder.save_pretrained("./retriever/saved_models/dpr/q_encoder/q_encoder_best_top_3")
-                self.p_encoder.save_pretrained("./retriever/saved_models/dpr/p_encoder/p_encoder_best_top_3")
+                self.q_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/q_encoder_best_top_3")
+                self.p_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/p_encoder_best_top_3")
             if top_5 > best_top_5:
                 best_top_5 = top_5
-                self.q_encoder.save_pretrained("./retriever/saved_models/dpr/q_encoder/q_encoder_best_top_5")
-                self.p_encoder.save_pretrained("./retriever/saved_models/dpr/p_encoder/p_encoder_best_top_5")
+                self.q_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/q_encoder_best_top_5")
+                self.p_encoder.save_pretrained("./chatbot/retriever/dpr/saved_models/q_encoder/p_encoder_best_top_5")

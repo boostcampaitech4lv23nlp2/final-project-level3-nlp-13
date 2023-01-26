@@ -41,7 +41,7 @@ def main(config):
     # train
     now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
     training_args = TrainingArguments(
-        output_dir=f"./retriever/saved_models/dpr/encoder/{config.model.name_or_path}/{now_time}",
+        output_dir=f"./chatbot/retriever/saved_models/dpr/{config.model.name_or_path}/{now_time}",
         evaluation_strategy="epoch",
         learning_rate=config.trainer.learning_rate,
         per_device_train_batch_size=config.trainer.batch_size,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str, default="retriever_config")
 
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./retriever/{args.config}.yaml")
+    config = OmegaConf.load(f"./chatbot/retriever/dpr/{args.config}.yaml")
 
     # fix random seeds for reproducibility
     SEED = 42
