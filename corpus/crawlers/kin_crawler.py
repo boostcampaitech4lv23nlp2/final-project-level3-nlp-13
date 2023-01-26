@@ -56,8 +56,9 @@ class KinCrawler:
                 # time.sleep(1.2)
                 res = req.get(url, headers=headers)
                 soup = BeautifulSoup(res.text, "html.parser")
-
                 parsed = self.read_qna(soup)
+                if parsed is None:
+                    continue
                 title = parsed["title"]
                 q = parsed["query"]
                 for answer in parsed["answers"]:
@@ -77,25 +78,28 @@ class KinCrawler:
         self.save_csv(df, f"kin_{query}")
 
     def read_qna(self, soup):
-        title = soup.select_one("div.title").text.strip()
         try:
-            query = soup.select_one("div.c-heading__content")
+            title = soup.select_one("div.title").text.strip()
+            try:
+                query = soup.select_one("div.c-heading__content")
+            except:
+                query = None
+            if query is not None:
+                query = re.sub(r"<.+?>", " ", str(query)).strip()
+
+            texts = soup.select("div.se-main-container")
+            answers = []
+            for text in texts:
+                answer = " ".join([s.text.strip() for s in text.find_all("span")])
+                answers.append(answer)
+
+            return {
+                "title": title,
+                "query": query,
+                "answers": answers,
+            }
         except:
-            query = None
-        if query is not None:
-            query = re.sub(r"<.+?>", " ", str(query)).strip()
-
-        texts = soup.select("div.se-main-container")
-        answers = []
-        for text in texts:
-            answer = " ".join([s.text.strip() for s in text.find_all("span")])
-            answers.append(answer)
-
-        return {
-            "title": title,
-            "query": query,
-            "answers": answers,
-        }
+            return None
 
     def save_csv(self, df: pd.DataFrame, save_name):
         if not os.path.exists(self.save_path):
