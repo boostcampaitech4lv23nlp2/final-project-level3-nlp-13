@@ -1,6 +1,7 @@
 from collections import Counter
-import pandas as pd
 from pprint import pprint
+
+import pandas as pd
 from kiwipiepy import Kiwi
 from kiwipiepy.utils import Stopwords
 
@@ -19,9 +20,13 @@ counts = c.most_common()
 pprint(counts[:100])
 new_df = pd.DataFrame(columns=["word", "count"])
 for (w, count) in counts:
-    new_df.update(pd.DataFrame({
-        "word": w,
-        "count": count,
-    }))
+    new_df.update(
+        pd.DataFrame(
+            {
+                "word": w,
+                "count": count,
+            }
+        )
+    )
 
 new_df.to_csv("vocab_counts.csv", index=False)
