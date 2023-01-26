@@ -8,16 +8,16 @@ from elasticsearch import Elasticsearch, helpers
 
 def make_db_data():
     # load data from huggingface dataset
-    data = load_dataset("nlpotato/chatbot_twitter_ver2")
+    data = load_dataset("nlpotato/chatbot_twitter_ver3")
     question = data["train"]["Q"] + data["test"]["Q"]
     answer = data["train"]["A"] + data["test"]["A"]
 
     db_data = [{"id": i, "question": q, "answer": a} for i, (q, a) in enumerate(zip(question, answer))]
     # save data to json file
-    if not os.path.exists("./retriever/data"):
-        os.makedirs("./retriever/data")
+    if not os.path.exists("./chatbot/retriever/data"):
+        os.makedirs("./chatbot/retriever/data")
 
-    with open("./retriever/data/elastic_data_v1.json", "w", encoding="utf-8") as f:
+    with open("./chatbot/retriever/data/elastic_data_v1.json", "w", encoding="utf-8") as f:
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
 
@@ -28,7 +28,7 @@ class ElasticRetriever:
         self.es = Elasticsearch("http://localhost:9200")
 
         # make index
-        with open("./retriever/setting.json", "r") as f:
+        with open("./chatbot/retriever/setting.json", "r") as f:
             setting = json.load(f)
 
         self.index_name = "chatbot"
@@ -37,9 +37,9 @@ class ElasticRetriever:
         self.es.indices.create(index=self.index_name, body=setting)
 
         # load data
-        if not os.path.exists("./retriever/data/elastic_data_v1.json"):  # TODO : 나중에 yaml 파일에서 데이터 경로 받아오도록 수정
+        if not os.path.exists("./chatbot/retriever/data/elastic_data_v1.json"):  # TODO : 나중에 yaml 파일에서 데이터 경로 받아오도록 수정
             make_db_data()
-        self.db_data = pd.read_json("./retriever/data/elastic_data_v1.json")
+        self.db_data = pd.read_json("./chatbot/retriever/data/elastic_data_v1.json")
 
         # insert data
         helpers.bulk(self.es, self._get_doc(self.index_name))
