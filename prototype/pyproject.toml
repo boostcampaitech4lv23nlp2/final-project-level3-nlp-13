@@ -20,6 +20,7 @@ efficientnet-pytorch = "^0.7.1"
 python-multipart = "^0.0.5"
 streamlit = "^1.17.0"
 streamlit-chat = "^0.0.2.1"
+omegaconf = "^2.3.0"
 
 
 [build-system]
