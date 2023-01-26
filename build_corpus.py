@@ -2,19 +2,14 @@ import argparse
 import datetime
 import pytz
 
-<<<<<<< HEAD
-from crawlers.naver_crawler import NaverCrawler
-from crawlers.twitter_crawler import TwitterCrawler
-from crawlers.theqoo_crawler import TheqooCrawler
-from crawlers.aihub_crawler import NewsCrawler, CommentCrawler
-=======
 from crawlers import (
     NaverCrawler,
     TwitterCrawler,
     TheqooCrawler,
     KinCrawler,
+    NewsCrawler,
+    CommentCrawler,
 )
->>>>>>> kin
 
 
 def main(args):
@@ -65,12 +60,7 @@ if __name__ == "__main__":
         "--crawler",
         "-c",
         type=str,
-<<<<<<< HEAD
-        choices=["naver", "twitter", "theqoo", "aihub"],
-        required=True,
-=======
-        choices=["naver", "twitter", "theqoo", "kin"],
->>>>>>> kin
+        choices=["naver", "twitter", "theqoo", "aihub", "kin"],
         help="the type of crawler to use",
     )
     parser.add_argument(
