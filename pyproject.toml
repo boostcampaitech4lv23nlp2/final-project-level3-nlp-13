@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "nlpotato"
+version = "0.1.0"
+description = ""
+authors = ["wjlee-ling <wjlee.ling@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pandas = "^1.5.3"
+tweepy = "^4.12.1"
+transformers = "^4.25.1"
+pyvirtualdisplay = "^3.0"
+scikit-learn = "^1.2.0"
+soynlp = "^0.0.493"
+pytz = "^2022.7.1"
+jax = "^0.4.2"
+torch = "^1.13.1"
+flax = "^0.6.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytz = "^2022.7.1"
+requests = "^2.28.2"
+black = "^22.12.0"
+tqdm = "^4.64.1"
+selenium = "^4.7.2"
+bs4 = "^0.0.1"
+python-dotenv = "^0.21.1"
+rank-bm25 = "^0.2.2"
+kiwipiepy = "^0.14.1"
+datasets = "^2.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

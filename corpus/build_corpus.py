@@ -1,20 +1,25 @@
 import argparse
 import datetime
 import pytz
+import re
 
-from crawlers.naver_crawler import NaverCrawler
-from crawlers.twitter_crawler import TwitterCrawler
-from crawlers.theqoo_crawler import TheqooCrawler
-from crawlers.aihub_crawler import NewsCrawler, CommentCrawler
+from crawlers import (
+    NaverCrawler,
+    TwitterCrawler,
+    TheqooCrawler,
+    KinCrawler,
+    NewsCrawler,
+    CommentCrawler,
+)
 
 
 def main(args):
     runtime = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d")
 
     if args.crawler == "naver":
-        query = args.query
         naver_crawler = NaverCrawler(runtime=runtime)
         if args.do_crawl:
+            query = args.query
             naver_crawler(query=query, n=args.num)
         if args.do_preprocess:
             naver_crawler.preprocess(raw_data_path=args.path)  # 1차 중복 제거: 기사 제목
@@ -23,10 +28,9 @@ def main(args):
         screen_name = args.screen_name
         twitter_crawler = TwitterCrawler()
         if args.do_crawl:
-            twitter_crawler(screen_name=args.screen_name)
+            twitter_crawler(screen_name=screen_name)
 
     elif args.crawler == "theqoo":
-        screen_name = args.screen_name
         theqoo_crawler = TheqooCrawler()
         if args.do_crawl:
             theqoo_crawler(n=args.num)
@@ -43,6 +47,12 @@ def main(args):
             aihub_crawler = CommentCrawler(directory)
             aihub_crawler()
 
+    elif args.crawler == "kin":
+        kin_crawler = KinCrawler(runtime=runtime)
+        if args.do_crawl:
+            query = args.query
+            n = args.num
+            kin_crawler(query=query, n=n)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,8 +60,7 @@ if __name__ == "__main__":
         "--crawler",
         "-c",
         type=str,
-        choices=["naver", "twitter", "theqoo", "aihub"],
-        required=True,
+        choices=["naver", "twitter", "theqoo", "aihub", "kin"],
         help="the type of crawler to use",
     )
     parser.add_argument(
@@ -75,7 +84,6 @@ if __name__ == "__main__":
         help="YYYY.MM.DD~YYYY.MM.DD. Specify search time range for NaverCrawler",
     )
 
-    ### twitter crawling args ###
     parser.add_argument(
         "--screen_name",
         "-s",
@@ -100,8 +108,6 @@ if __name__ == "__main__":
         assert args.path is None, "--path is preprocessing-only"
 
     if args.range != "~":
-        import re
-
         assert (
             re.match(
                 r"[0-9]{4}\.[0-9]{2}\.[0-9]{2}~[0-9]{4}\.[0-9]{2}\.[0-9]{2}", args.range
