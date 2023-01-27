@@ -51,7 +51,7 @@ if __name__ == "__main__":
     config = OmegaConf.load(f"./data/twitter_data_preprocess/{args.config}.yaml")
 
     # fix random seeds for reproducibility
-    SEED = 123
+    SEED = 42
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
