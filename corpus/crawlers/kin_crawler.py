@@ -38,7 +38,7 @@ class KinCrawler:
             urls = [item["link"] for item in items]
             return urls
         else:
-            None
+            return None
 
     def __call__(self, query: str, n: int):
         pbar = tqdm(total=n, desc="Reading QnAs")
@@ -79,7 +79,8 @@ class KinCrawler:
 
     def read_qna(self, soup):
         try:
-            title = soup.select_one("div.title").text.strip()
+            title = soup.select_one("div.title")
+            title = re.sub(r"<.+?>", " ", str(title)).strip()
             try:
                 query = soup.select_one("div.c-heading__content")
             except:
