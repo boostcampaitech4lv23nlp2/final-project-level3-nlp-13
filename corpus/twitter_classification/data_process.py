@@ -13,7 +13,7 @@ from inference import inference
 
 
 def anonymize_nickname(sentence):
-    return re.sub(r"\w+님", "<account>님", sentence)
+    return re.sub(r"[가-힣a-zA-Z0-9]+님", "<account>님", sentence)
 
 
 def remove_emoji(text):
@@ -26,6 +26,13 @@ def remove_emoji(text):
         flags=re.UNICODE,
     )
     return emoji_pattern.sub(r"", text)
+
+
+def remove_last_word_is_only_brace(sent):
+    # 마지막 단어가 괄호로만 이루어진 경우 제거
+    if sent[-1] == "(":
+        sent = sent[:-1].strip()
+    return sent
 
 
 def preprocess(sent):
@@ -49,8 +56,10 @@ def preprocess(sent):
     sent = remove_emoji(sent)
 
     # 5. …가 붙어있는 단어 제거
-    sent = re.sub(r"#\w+…", "", sent)
-    sent = re.sub(r"\w+…", "", sent)
+    sent = re.sub(r"[가-힣a-zA-Z0-9-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'》]+…+", "", sent)
+
+    # 6. 마지막 단어가 괄호로만 이루어진 경우 제거
+    sent = remove_last_word_is_only_brace(sent)
 
     # &gt; &lt;
     sent = re.sub(r"&gt;", "", sent)
