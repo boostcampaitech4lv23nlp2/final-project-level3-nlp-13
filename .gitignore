@@ -199,6 +199,8 @@ save_models/
 saved_models/
 config/*
 !config/base_config.yaml
+chatbot/generator/config/*
+!chatbot/generator/config/base_config.yaml
 outputs/
 
 data/*.csv
@@ -207,3 +209,5 @@ prediction/
 best_model/
 klue-roberta-retrained/
 nohup.out
+
+chatbot/retriever/logs

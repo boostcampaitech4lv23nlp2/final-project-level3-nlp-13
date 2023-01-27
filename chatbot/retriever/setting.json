@@ -1,0 +1,34 @@
+{
+    "settings": {
+        "analysis": {
+            "analyzer": {
+                "potato_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "nori_tokenizer",
+                    "filter": [
+                        "shingle"
+                    ]
+                }
+            },
+            "similarity": {
+                "potato_similarity": {
+                    "type": "BM25"
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "question": {
+                "type": "text",
+                "analyzer": "potato_analyzer",
+                "search_analyzer": "potato_analyzer"
+            },
+            "answer": {
+                "type": "text",
+                "analyzer": "potato_analyzer",
+                "search_analyzer": "potato_analyzer"
+            }
+        }
+    }
+}

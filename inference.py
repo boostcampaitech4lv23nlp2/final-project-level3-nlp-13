@@ -25,8 +25,13 @@ def main(config):
         )
         model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
         model.resize_token_embeddings(len(tokenizer))
-    elif "bart" in config.model.name_or_path:
-        print("🔥 bart")
+    elif (
+        "bart" in config.model.name_or_path
+        or "bart".upper() in config.model.name_or_path
+        or "t5" in config.model.name_or_path
+        or "t5".upper() in config.model.name_or_path
+    ):
+        print("🔥 Enc-Dec")
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path)
         model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
         model.resize_token_embeddings(len(tokenizer))

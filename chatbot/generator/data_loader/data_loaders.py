@@ -33,7 +33,7 @@ class GPT_Dataset:
         return {"input_ids": input_batch}
 
 
-class BART_Dataset:
+class Enc_Dec_Dataset:
     def __init__(self, tokenizer, config):
         self.config = config
         self.tokenizer = tokenizer
@@ -46,14 +46,7 @@ class BART_Dataset:
         )
 
     def tokenize(self, element):
-        # questions = []
-        # answers = []
-        # for q, a in zip(element["Q"], element["A"]):
-        #     questions.append(self.tokenizer.bos_token + q + self.tokenizer.eos_token)
-        #     answers.append(self.tokenizer.bos_token + a + self.tokenizer.eos_token)
-
         inputs = self.tokenizer(
-            # questions,
             element["Q"],
             padding="max_length",
             truncation=True,
@@ -64,7 +57,6 @@ class BART_Dataset:
         )
 
         target_tokens = self.tokenizer(
-            # answers,
             element["A"],
             padding="max_length",
             truncation=True,

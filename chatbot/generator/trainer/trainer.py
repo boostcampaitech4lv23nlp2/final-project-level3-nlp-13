@@ -10,6 +10,7 @@ from transformers import (
     AutoTokenizer,
     DataCollatorForLanguageModeling,
     DataCollatorForSeq2Seq,
+    DataCollatorForWholeWordMask,
     EarlyStoppingCallback,
     EvalPrediction,
     Seq2SeqTrainer,
@@ -68,7 +69,7 @@ class GPT_Chatbot:
 
 
 @dataclass
-class BART_Chatbot:
+class Enc_Dec_Chatbot:
     config: omegaconf.dictconfig.DictConfig
     training_args: TrainingArguments
     tokenizer: AutoTokenizer
@@ -78,8 +79,8 @@ class BART_Chatbot:
     def __post_init__(self):
         self.train_dataset = self.datasets.tokenized_datasets["train"]
         self.test_dataset = self.datasets.tokenized_datasets["test"]
-        self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
 
+        self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
         # Trainer 초기화
         self.trainer = Seq2SeqTrainer(
             model=self.model,
@@ -105,7 +106,7 @@ class BART_Chatbot:
         output_train_file = os.path.join(self.training_args.output_dir, "train_results.txt")
 
         with open(output_train_file, "w") as writer:
-            logger.info("*****BART Train results *****")
+            logger.info("*****Enc-Dec Train results *****")
             for key, value in sorted(train_result.metrics.items()):
                 logger.info(f"{key} = {value}")
                 writer.write(f"{key} = {value}\n")
