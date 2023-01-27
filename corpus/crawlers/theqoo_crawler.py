@@ -44,7 +44,7 @@ class TheqooCrawler:
         for page in pages:
             page = (
                 "https://theqoo.net/index.php?mid=bts&filter_mode=best&m=0&page="
-                + str(pages)
+                + str(page)
             )
             self.driver.get(page)
             rows = self.driver.find_elements(By.TAG_NAME, "a")
@@ -222,6 +222,7 @@ class TheqooCrawler:
     def __call__(self, n: int):
         self.pages = [i + 2 for i in range(n)]  # 크롤링은 항상 2페이지부터 시작.
         self.urls = self.get_urls(self.pages)  # 한 페이지당 20개의 url
+
         result = []
         for url in tqdm(self.urls):
             result_data = self.get_data(url)
@@ -231,7 +232,8 @@ class TheqooCrawler:
                 and len(result_data['A']) > 0
             ):
                 result_data = self.delete_similarity(result_data)
-                if result_data not in result:
+                if (len(result_data['Q']) > 0 and len(result_data['A']) > 0):
+                    print(result_data)
                     result.append(result_data)
                 
            
