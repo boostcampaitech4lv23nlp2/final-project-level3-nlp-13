@@ -1,14 +1,19 @@
+import argparse
 import json
 import os
+import warnings
 
 import pandas as pd
 from datasets import load_dataset
 from elasticsearch import Elasticsearch, helpers
+from omegaconf import OmegaConf
+
+warnings.filterwarnings("ignore")
 
 
 def make_db_data():
     # load data from huggingface dataset
-    data = load_dataset("nlpotato/chatbot_twitter_ver3")
+    data = load_dataset(config.data.hugging_face_path)
     question = data["train"]["Q"] + data["test"]["Q"]
     answer = data["train"]["A"] + data["test"]["A"]
 
@@ -17,18 +22,18 @@ def make_db_data():
     if not os.path.exists("./chatbot/retriever/data"):
         os.makedirs("./chatbot/retriever/data")
 
-    with open("./chatbot/retriever/data/elastic_data_v1.json", "w", encoding="utf-8") as f:
+    with open(config.data.db_path, "w", encoding="utf-8") as f:
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
 
 class ElasticRetriever:
-    def __init__(self):
+    def __init__(self, config):
 
         # connect to elastic search
         self.es = Elasticsearch("http://localhost:9200")
 
         # make index
-        with open("./chatbot/retriever/setting.json", "r") as f:
+        with open(config.setting.path, "r") as f:
             setting = json.load(f)
 
         self.index_name = "chatbot"
@@ -37,9 +42,9 @@ class ElasticRetriever:
         self.es.indices.create(index=self.index_name, body=setting)
 
         # load data
-        if not os.path.exists("./chatbot/retriever/data/elastic_data_v1.json"):  # TODO : 나중에 yaml 파일에서 데이터 경로 받아오도록 수정
+        if not os.path.exists(config.data.db_path):
             make_db_data()
-        self.db_data = pd.read_json("./chatbot/retriever/data/elastic_data_v1.json")
+        self.db_data = pd.read_json(config.data.db_path)
 
         # insert data
         helpers.bulk(self.es, self._get_doc(self.index_name))
@@ -75,10 +80,16 @@ class ElasticRetriever:
 
 
 if __name__ == "__main__":
-    elastic_retriever = ElasticRetriever()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--config", "-c", type=str, default="retriever_config")
+
+    args, _ = parser.parse_known_args()
+    config = OmegaConf.load(f"./chatbot/retriever/{args.config}.yaml")
+    elastic_retriever = ElasticRetriever(config)
 
     # test
-    query = "태형아 나랑 결혼하자"
+    query = input("query를 입력해주세요: ")
     scores, questions, answers = elastic_retriever.search(query)
 
     print(f"✅ 검색 결과 : {query}")
