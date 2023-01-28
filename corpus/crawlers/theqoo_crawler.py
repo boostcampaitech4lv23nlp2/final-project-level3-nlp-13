@@ -127,7 +127,7 @@ class TheqooCrawler:
             flags=re.UNICODE,
         )
         comment = emoji_pattern.sub(r"", comment)  # no emoji
-        comment = re.sub("[a-zA-z]", "", comment)
+        comment = re.sub('[a-zA-z]','', comment)
         comment = comment.lstrip()
         comment = comment.rstrip()
 
@@ -170,9 +170,7 @@ class TheqooCrawler:
             text = self.driver.find_element(By.TAG_NAME, "article").text
             if self.check_text(text):  # text가 url을 포함하지 않을때만 크롤링
                 comments_set = set()
-                comments_element = self.driver.find_elements(
-                    By.CLASS_NAME, "fdb_lst_ul"
-                )
+                comments_element = self.driver.find_elements(By.CLASS_NAME, "fdb_lst_ul")
                 for com in comments_element:
                     for sentence in list(com.text.split("\n")):
                         if self.check_comment(sentence):
@@ -227,10 +225,11 @@ class TheqooCrawler:
 
                 new_dict["A"] = answer
             except:
-                new_dict["A"] = []
+                new_dict['A'] = []
                 pass
 
         return new_dict
+
 
     def __call__(self, n: int):
         self.pages = [i + 2 for i in range(n)]  # 크롤링은 항상 2페이지부터 시작.
@@ -238,16 +237,21 @@ class TheqooCrawler:
         result = []
         for url in tqdm(self.urls):
             result_data = self.get_data(url)
-            if result_data and len(result_data["Q"]) > 8 and len(result_data["A"]) > 0:
+            if (
+                result_data
+                and len(result_data["Q"]) > 8
+                and len(result_data['A']) > 0
+            ):
                 result_data = self.delete_similarity(result_data)
-                if len(result_data["Q"]) > 8 and len(result_data["A"]) > 8:
+                if len(result_data['Q']) > 8 and len(result_data['A']) > 8:
                     print(result_data)
                     result.append(result_data)
-
+                
+           
         self.save_to_pickle(result)
-        print("----- Pickle 저장 완료 -----")
+        print('----- Pickle 저장 완료 -----')
         self.post_process()
-        print("----- JSON 저장 완료 -----")
+        print('----- JSON 저장 완료 -----')
 
     def get_tagger(self):
         from kiwipiepy import Kiwi
@@ -268,7 +272,7 @@ class TheqooCrawler:
         vectorizer = TfidfVectorizer(
             min_df=2,
             ngram_range=(1, 3),
-            # tokenizer=tokenize,
+           # tokenizer=tokenize,
         )
         vectors = vectorizer.fit_transform(texts)
         clusters = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(vectors)
@@ -277,29 +281,30 @@ class TheqooCrawler:
         df.drop_duplicates(subset=["cluster"], inplace=True)
         df.dropna(axis=0, how="any", inplace=True)
         return df
-
+    
     def post_process(self):
-        with open("data/raw_data/theqoo/theqoo_bts_hot.pickle", "rb") as fr:
+        with open('data/raw_data/theqoo/theqoo_bts_hot.pickle', 'rb') as fr:
             pickle = pickle.load(fr)
         fr.close()
-        new_df = pd.DataFrame(columns=["Q", "A"])
+        new_df = pd.DataFrame(columns=['Q', 'A'])
         for i in range(len(pickle)):
             data = pickle[i]
-            question = data["Q"]
-            answer_list = data["A"]
+            question = data['Q']
+            answer_list = data['A']
 
             for answer in answer_list:
                 new_data = [question, answer]
                 new_df.loc[len(new_df)] = new_data
+        
         new_df = drop_duplicates_by_clusters(new_df)
         new_df.reset_index(drop=True, inplace=True)
-        new_df.to_json("Theqoo_Data.json", orient="records")
+        new_df.to_json('Theqoo_Data.json', orient='records')
 
     def save_to_pickle(self, result: list):
         self.check_filepath(self.save_path)
         self.screen_name = "bts_hot"
         file_name = f"theqoo_{self.screen_name}.pickle"
         pickle_files = ""
-
+    
         with open(f"{self.save_path}/{file_name}", "wb") as f:
             pickle.dump(result, f)
