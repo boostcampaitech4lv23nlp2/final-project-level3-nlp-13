@@ -11,11 +11,19 @@ from soynlp.normalizer import *
 from konlpy.tag import *
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import DBSCAN
 import pickle
 import time
 import os
 import glob
 import re
+import pandas as pd
+from pandas import Series, DataFrame
+from datasets import DatasetDict
+from datasets import load_dataset
+import sys
+import string
+import json
 
 
 chrome_options = Options()
@@ -119,7 +127,7 @@ class TheqooCrawler:
             flags=re.UNICODE,
         )
         comment = emoji_pattern.sub(r"", comment)  # no emoji
-        comment = re.sub('[a-zA-z]','', comment)
+        comment = re.sub("[a-zA-z]", "", comment)
         comment = comment.lstrip()
         comment = comment.rstrip()
 
@@ -162,7 +170,9 @@ class TheqooCrawler:
             text = self.driver.find_element(By.TAG_NAME, "article").text
             if self.check_text(text):  # text가 url을 포함하지 않을때만 크롤링
                 comments_set = set()
-                comments_element = self.driver.find_elements(By.CLASS_NAME, "fdb_lst_ul")
+                comments_element = self.driver.find_elements(
+                    By.CLASS_NAME, "fdb_lst_ul"
+                )
                 for com in comments_element:
                     for sentence in list(com.text.split("\n")):
                         if self.check_comment(sentence):
@@ -198,26 +208,29 @@ class TheqooCrawler:
         new_dict = {}
         new_dict["Q"] = result_data["Q"]
         answer = result_data["A"]
+        if len(answer) > 0:
+            try:
+                X = vectorizer.fit_transform(answer)
 
-        X = vectorizer.fit_transform(answer)
+                similarity_matrix = cosine_similarity(X)
+                threshold = 0.2  # 굉장히 엄격하게 적용
 
-        similarity_matrix = cosine_similarity(X)
-        threshold = 0.2  # 굉장히 엄격하게 적용
+                remove_list = []
+                for i in range(len(similarity_matrix)):
+                    for j in range(i + 1, len(similarity_matrix)):
+                        if similarity_matrix[i][j] > threshold:
+                            remove_list.append(answer[j])
 
-        remove_list = []
-        for i in range(len(similarity_matrix)):
-            for j in range(i + 1, len(similarity_matrix)):
-                if similarity_matrix[i][j] > threshold:
-                    remove_list.append(answer[j])
+                answer = [
+                    x for x in answer if x not in remove_list and len(x) > 8
+                ]  # 길이가 8 이하거나 유사한 문장은 제거
 
-        answer = [
-            x for x in answer if x not in remove_list and len(x) > 8
-        ]  # 길이가 8 이하거나 유사한 문장은 제거
-
-        new_dict["A"] = answer
+                new_dict["A"] = answer
+            except:
+                new_dict["A"] = []
+                pass
 
         return new_dict
-
 
     def __call__(self, n: int):
         self.pages = [i + 2 for i in range(n)]  # 크롤링은 항상 2페이지부터 시작.
@@ -225,26 +238,68 @@ class TheqooCrawler:
         result = []
         for url in tqdm(self.urls):
             result_data = self.get_data(url)
-            if (
-                result_data
-                and len(result_data["Q"]) > 5
-                and len(result_data['A']) > 0
-            ):
+            if result_data and len(result_data["Q"]) > 8 and len(result_data["A"]) > 0:
                 result_data = self.delete_similarity(result_data)
-                if len(result_data['Q']) > 5 and len(result_data['A']) > 8:
+                if len(result_data["Q"]) > 8 and len(result_data["A"]) > 8:
                     print(result_data)
                     result.append(result_data)
-                
-           
-        self.save_to_pickle(result)
-        print('----- 저장 완료 -----')
 
+        self.save_to_pickle(result)
+        print("----- Pickle 저장 완료 -----")
+        self.post_process()
+        print("----- JSON 저장 완료 -----")
+
+    def get_tagger(self):
+        from kiwipiepy import Kiwi
+
+        kiwi = Kiwi()
+        for word in ["방탄소년단", "진", "정국", "지민", "RM", "슈가", "제이홉", "뷔"]:
+            kiwi.add_user_word(word, "NNP")
+        return kiwi
+
+    def drop_duplicates_by_clusters(self, df, eps: float = 0.5, min_samples: int = 1):
+        tagger = get_tagger()
+
+        df.drop_duplicates(subset=["Q", "A"], inplace=True)
+        df.dropna(axis=0, how="any", inplace=True)
+
+        texts = df["A"]
+
+        vectorizer = TfidfVectorizer(
+            min_df=2,
+            ngram_range=(1, 3),
+            # tokenizer=tokenize,
+        )
+        vectors = vectorizer.fit_transform(texts)
+        clusters = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(vectors)
+
+        df["cluster"] = clusters
+        df.drop_duplicates(subset=["cluster"], inplace=True)
+        df.dropna(axis=0, how="any", inplace=True)
+        return df
+
+    def post_process(self):
+        with open("data/raw_data/theqoo/theqoo_bts_hot.pickle", "rb") as fr:
+            pickle = pickle.load(fr)
+        fr.close()
+        new_df = pd.DataFrame(columns=["Q", "A"])
+        for i in range(len(pickle)):
+            data = pickle[i]
+            question = data["Q"]
+            answer_list = data["A"]
+
+            for answer in answer_list:
+                new_data = [question, answer]
+                new_df.loc[len(new_df)] = new_data
+        new_df = drop_duplicates_by_clusters(new_df)
+        new_df.reset_index(drop=True, inplace=True)
+        new_df.to_json("Theqoo_Data.json", orient="records")
 
     def save_to_pickle(self, result: list):
         self.check_filepath(self.save_path)
         self.screen_name = "bts_hot"
         file_name = f"theqoo_{self.screen_name}.pickle"
         pickle_files = ""
-    
+
         with open(f"{self.save_path}/{file_name}", "wb") as f:
             pickle.dump(result, f)
