@@ -54,6 +54,7 @@ def main(args):
             n = args.num
             kin_crawler(query=query, n=n)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(

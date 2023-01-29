@@ -80,7 +80,13 @@ class KinCrawler:
     def read_qna(self, soup):
         try:
             title = soup.select_one("div.title")
-            title = "\n".join([content.strip() for content in title.contents if "Tag" not in str(type(content))])
+            title = "\n".join(
+                [
+                    content.strip()
+                    for content in title.contents
+                    if "Tag" not in str(type(content))
+                ]
+            )
             try:
                 query = soup.select_one("div.c-heading__content")
             except:
