@@ -17,6 +17,7 @@ pytz = "^2022.7.1"
 jax = "^0.4.2"
 torch = "^1.13.1"
 flax = "^0.6.3"
+konlpy = "^0.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
