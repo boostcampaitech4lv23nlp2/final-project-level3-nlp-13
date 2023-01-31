@@ -6,6 +6,7 @@ import requests as req
 import pandas as pd
 
 from dataclasses import dataclass
+from pathlib import Path
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from tqdm import tqdm
@@ -24,7 +25,9 @@ headers = {
 @dataclass
 class KinCrawler:
     runtime: str
-    save_path: str = "data/raw_data/kin"
+    save_path: str = (
+        Path(__file__).parent.parent.absolute() / "data/raw_data/kin"
+    )  # "./data/raw_data/kin"
 
     def get_kin_urls(self, query: str, start: int) -> typing.List:
         start = (start - 1) * 10 + 1
