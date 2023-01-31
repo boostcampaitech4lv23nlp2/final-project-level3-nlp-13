@@ -88,7 +88,7 @@ class KinFilter:
         df = pd.concat(ls)
         df.fillna("", inplace=True)
         df["text"] = df.apply(
-            lambda row: self.clean(row["title"]) + self.clean(row["query"]), axis=1
+            lambda row: self.clean(row["title"]) + " " + self.clean(row["query"]), axis=1
         )
         df["text"] = df.apply(
             lambda row: row["text"] if self.filter_by_title(row["text"]) else None,
