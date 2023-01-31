@@ -614,17 +614,23 @@ def main():
 
     # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
     # Since we make sure that all sequences are of the same length, no attention_mask is needed.
-    def tokenize_function(examples):
+    # def tokenize_function(examples):
+    #     return tokenizer(examples[text_column_name], return_attention_mask=False)
+
+    def tokenize_function(examples):  # 💥수정
         inputs = tokenizer(
-            examples["Q"],
-            padding="max_length",
-            truncation=True,
+            examples[text_column_name],
             max_length=max_seq_length,
-            return_tensors="pt",
+            padding="max_length",
+            stride=5,  # 추가로 반환할 token 수
+            truncation=True,
             return_token_type_ids=False,
             return_attention_mask=False,
+            return_overflowing_tokens=True,
+            return_offsets_mapping=True,
         )
-        return {**inputs}
+        # return {**inputs}
+        return {"input_ids": inputs["input_ids"]}
 
     tokenized_datasets = datasets.map(
         tokenize_function,
@@ -690,6 +696,18 @@ def main():
     rng = jax.random.PRNGKey(training_args.seed)
     dropout_rngs = jax.random.split(rng, jax.local_device_count())
 
+    # 💥추가
+    import pickle
+
+    ## Load pickle
+    with open("../add_words.pickle", "rb") as fr:
+        add_words = pickle.load(fr)
+    num_add_tokens = tokenizer.add_tokens(add_words)
+    print("🔥 num add tokens : ", num_add_tokens)
+    print("🔥 before config : ", config)
+    config.vocab_size = len(tokenizer)
+    print("🔥 after config : ", config)
+
     if model_args.model_name_or_path:
         model = FlaxT5ForConditionalGeneration.from_pretrained(
             model_args.model_name_or_path,
@@ -706,6 +724,9 @@ def main():
             seed=training_args.seed,
             dtype=getattr(jnp, model_args.dtype),
         )
+
+    # # 💥수정
+    # print("🔥resize token embeddings : ", model.resize_token_embeddings(len(tokenizer)))
 
     # Data collator
     # This one will take care of randomly masking the tokens.
