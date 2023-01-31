@@ -199,12 +199,15 @@ save_models/
 saved_models/
 config/*
 !config/base_config.yaml
+chatbot/generator/config/*
+!chatbot/generator/config/base_config.yaml
 outputs/
 
 data/*.csv
 data/*.pickle
 prediction/
 best_model/
-chromedriver
+klue-roberta-retrained/
 nohup.out
-.empty/
+
+chatbot/retriever/logs

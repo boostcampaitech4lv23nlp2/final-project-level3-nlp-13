@@ -1,0 +1,12 @@
+data:
+  path: nlpotato/chatbot_twitter_ver2
+
+model:
+  name_or_path: "klue/bert-base"
+
+trainer:
+  learning_rate: 5e-5
+  batch_size: 32
+  num_train_epochs: 30
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1 
