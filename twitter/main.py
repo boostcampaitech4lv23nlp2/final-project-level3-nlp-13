@@ -83,11 +83,17 @@ def reply_to_tweets():
                 print("🤬It is a spam🤬")
                 output_text = "바르고 고운 말만 해주세요 감사합니다"
             else:
-                print("🔥 Not spam. generate answer for...", input_text) 
+                print("⚫ Not spam. generate answer for...", input_text) 
                 generator = Chatbot_utils(tokenizer, model)
                 output_text = generator.get_answer(input_text)
                 output_text = str(output_text).replace(input_text[1:], "")
-                print("🔥 output sentence is....", output_text)
+                while True:
+                    if sentences_predict(output_text) == 0:
+                        print("❌햄 output: ", output_text)
+                        break
+                    print("⭕ 스팸: ", sentences_predict(output_text))
+                    output_text = generator.get_answer(input_text)
+                    output_text = str(output_text).replace(input_text[1:], "")
 
             # 3. 답글 업로드
             new_status = api.update_status("@"+ mention.user.screen_name + " " + output_text, mention.id) 
