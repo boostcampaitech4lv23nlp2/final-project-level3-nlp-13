@@ -78,7 +78,11 @@ class NewsCrawler:
         return re.sub(r"[\(\[].+?[\)\]]", "", text)
 
     def preprocess_body(self, text):
-        sents = [sent.text.replace(";", " ") for sent in self.tagger.split_into_sents(text) if sent.text.strip().endswith(".")]
+        sents = [
+            sent.text.replace(";", " ")
+            for sent in self.tagger.split_into_sents(text)
+            if sent.text.strip().endswith(".")
+        ]
         if len(sents) <= 2:
             return None
         text = " ".join(sents)
@@ -87,7 +91,6 @@ class NewsCrawler:
         text = re.sub(";", "", text)
         text = re.sub(r"^(.+?)?\s?=", "", text)
         return text
-
 
 
 class CommentCrawler(NewsCrawler):

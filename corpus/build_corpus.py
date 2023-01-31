@@ -9,6 +9,7 @@ from crawlers import (
     TwitterCrawler,
     TheqooCrawler,
     KinCrawler,
+    KinFilter,
     NewsCrawler,
     CommentCrawler,
 )
@@ -59,6 +60,11 @@ def main(args):
             query = args.query
             n = args.num
             kin_crawler(query=query, n=n)
+        if args.do_preprocess:
+            kin_filter = KinFilter()  # TO-DO: vocab.json
+            df = kin_filter.preprocess(args.path)
+            df.to_csv(f"data/preprocessed_data/kin/{runtime}.csv", index=False)
+            # kin_filter.save_csv(df, f"kin_{runtime}.csv")
 
 
 if __name__ == "__main__":
