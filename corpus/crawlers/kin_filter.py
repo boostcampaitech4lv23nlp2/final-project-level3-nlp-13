@@ -53,8 +53,8 @@ class KinFilter:
         return True
 
     def is_photo(self, title: str) -> bool:
-        p = re.compile(r"(사진|움짤|영상|출처|셀카|원본|포토|프사|짤|GIF|화질|엽사|배경|도안)")
-        if re.search(p, title, re.I):
+        p = re.compile(r"(사진|움짤|영상|출처|셀카|원본|포토|프사|짤|GIF|gif|화질|엽사|배경|도안)")
+        if re.search(p, title):
             return True
         return False
 
