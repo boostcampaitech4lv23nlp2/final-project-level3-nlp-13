@@ -21,7 +21,7 @@ class NaverCrawler:
         """
         환경에 맞는 Chrome driver가 프로젝트 최상위 폴더에 있어야 함.
         """
-        self.save_path = "data/raw_data/naver"
+        self.save_path = Path(__file__).parent.parent.absolute() / "data"
         self.runtime = runtime
         self.headers = {
             "User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36"
@@ -414,22 +414,24 @@ class NaverCrawler:
         return indices, scores
 
     def save_pickle(self, query: str, run_time: str, data: dict) -> None:
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
+        save_path = self.save_path / "raw_data/naver"
+        if not save_path.exists():
+            save_path.mkdir(parents=True)
 
-        self.pickle_path = os.path.join(
-            self.save_path, f"{query}_{run_time}_size{len(data['data'])}.pickle"
+        self.pickle_path = (
+            save_path / f"{query}_{run_time}_size{len(data['data'])}.pickle"
         )
+
         with open(self.pickle_path, "wb") as f:
             if len(data["data"]) > 0:
                 pickle.dump(data, f)
                 print(f"Saved to {self.pickle_path}")
 
     def save_csv(self, df: pd.DataFrame, save_name: str) -> None:
-        save_path = "data/preprocessed_data/naver/"
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        csv_path = os.path.join(save_path, f"{save_name}.csv")
+        save_path = self.save_path / "preprocessed_data/naver"
+        if not save_path.exists():
+            save_path.mkdir(parents=True)
+        csv_path = save_path / f"{save_name}.csv"
         df.to_csv(csv_path, index=False)
         print(f"Saved_to {csv_path}")
 

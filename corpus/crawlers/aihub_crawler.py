@@ -4,6 +4,7 @@ import re
 import pandas as pd
 from pathlib import Path
 from tqdm import trange
+from kiwipiepy import Kiwi
 
 
 class NewsCrawler:
@@ -14,6 +15,7 @@ class NewsCrawler:
 
     def __init__(self, path):
         self.path = Path(path)
+        self.tagger = None
 
     def get_file_paths(self) -> typing.List:
         return self.path.glob("**/*.json")
@@ -57,6 +59,39 @@ class NewsCrawler:
         df.to_csv(save_path, index=False)
         print(f"Saved to {str(save_path)}")
 
+    def filter_bts(self, df: pd.DataFrame):
+        """
+        Get articles with titles containing "BTS" or "bts" or "방탄소년단"
+        """
+        return df[df["title"].str.contains("(BTS|bts|방탄소년단)", regex=True, na=False)]
+
+    def preprocess(self, df: pd.DataFrame):
+        self.tagger = Kiwi()
+        df["title"] = df["title"].apply(self.preprocess_title)
+        df["body"] = df["body"].apply(self.preprocess_body)
+        df.dropna(axis=0, how="any", subset="body", inplace=True)
+        df["text"] = df.apply(lambda row: row["title"] + " " + row["body"], axis=1)
+        # df = df[~df["text"].str.contains("(이름)", regex=False)]
+        df.to_csv("aihub_news_bts_preprocessed.csv")
+
+    def preprocess_title(self, text):
+        return re.sub(r"[\(\[].+?[\)\]]", "", text)
+
+    def preprocess_body(self, text):
+        sents = [
+            sent.text.replace(";", " ")
+            for sent in self.tagger.split_into_sents(text)
+            if sent.text.strip().endswith(".")
+        ]
+        if len(sents) <= 2:
+            return None
+        text = " ".join(sents)
+        if "(이름)" in text:
+            return None
+        text = re.sub(";", "", text)
+        text = re.sub(r"^(.+?)?\s?=", "", text)
+        return text
+
 
 class CommentCrawler(NewsCrawler):
     """
@@ -73,7 +108,6 @@ class CommentCrawler(NewsCrawler):
             items = self.read_json(path)
             if items is not None:
                 df = pd.DataFrame(items)
-                print(df.head(2))
                 ls.append(df)
         df = pd.concat(ls, ignore_index=True)
         self.save(df, "aihub_comment")

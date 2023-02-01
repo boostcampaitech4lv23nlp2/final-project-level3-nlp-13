@@ -59,11 +59,12 @@ def main(config):
     print("🔥 start training...")
     now_time = datetime.datetime.now(pytz.timezone("Asia/Seoul")).strftime("%m-%d-%H-%M")
     data_path = re.sub(".+/", "", config.path.data)
+    model_path = "/".join(config.model.name_or_path.split("/")[-2:])
+    model_path = "".join(model_path.split("_")[:-1])
     if "pretraining" in config.model.name_or_path:
-        model_path = "pretrained_" + "/".join(config.model.name_or_path.split("/")[-2:])
-        file_name = f"saved_models/{model_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
+        file_name = f"saved_models/pretrained/{model_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
     else:
-        file_name = f"saved_models/{config.model.name_or_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
+        file_name = f"saved_models/{model_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
     if "gpt" in config.model.name_or_path or "gpt".upper() in config.model.name_or_path:
         training_args = TrainingArguments(**config.train, output_dir=file_name)
     elif (
@@ -80,7 +81,7 @@ def main(config):
         wandb.init(
             entity=config.wandb.team,
             project=config.wandb.project,
-            group=config.model.name_or_path,
+            group=model_path,
             id=run_id,
             tags=config.wandb.tags,
         )
