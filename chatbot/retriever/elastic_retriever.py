@@ -25,7 +25,7 @@ def make_db_data():
     if not os.path.exists("./chatbot/retriever/data"):
         os.makedirs("./chatbot/retriever/data")
 
-    with open(config.data.db_path, "w", encoding="utf-8") as f:
+    with open("./chatbot/retriever/data/answer_template.json", "w", encoding="utf-8") as f:
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
 
@@ -45,13 +45,13 @@ def make_db_data():
 
 
 class ElasticRetriever:
-    def __init__(self, config):
+    def __init__(self):
 
         # connect to elastic search
         self.es = Elasticsearch("http://localhost:9200")
 
         # make index
-        with open(config.setting.path, "r") as f:
+        with open("./chatbot/retriever/setting.json", "r") as f:
             setting = json.load(f)
 
         self.index_name = "chatbot"
@@ -60,9 +60,9 @@ class ElasticRetriever:
         self.es.indices.create(index=self.index_name, body=setting)
 
         # load data
-        if not os.path.exists(config.data.db_path):
+        if not os.path.exists("./chatbot/retriever/data/answer_template.json"):
             make_db_data()
-        self.db_data = pd.read_json(config.data.db_path)
+        self.db_data = pd.read_json("./chatbot/retriever/data/answer_template.json")
 
         # insert data
         helpers.bulk(self.es, self._get_doc(self.index_name))
@@ -91,143 +91,109 @@ class ElasticRetriever:
         answers = [hit["_source"]["answer"] for hit in res["hits"]["hits"]]
         return {"scores": scores, "intent": intent, "questions": questions, "answers": answers}
 
+    def find_member(self, query):
+        # fmt: off
+        member_dict = {
+            "정국": ["정국", "전정국", "정구기", "정꾸기", "구기", "꾸기", "톡희", "전봉장", "전졍국", "정꾸", "전증구기", "꾸꾸", "정큑", "정궁이", "졍구기"],
+            "지민": ["지민", "박지민", "지미니", "뾰아리", "쨔만", "쮀멘", "줴멘", "민", "지미나", "찌미나", "박디민", "바찌미", "짜마니", "쨔마니", "디밍", "디민", "딤인", "짐니", "자마니", "찜니", "짐쨩", "딤읭이", "박짐"],
+            "남준": ["RM", "랩몬", "랩몬스터", "김남준", "남준이", "주니", "남준", "남주니", "쮸니", "남듀니", "핑몬"],
+            "진": ["슥찌", "진", "석찌니", "석지니", "석진", "김석진", "햄찌", "지니"],
+            "슈가": ["민윤기", "슈가", "윤기", "뉸기", "미늉기", "융긔", "늉기", "슉아", "민피디", "민군"],
+            "제이홉": ["정호석", "제이홉", "호석", "호비", "호서기", "호시기", "호서긱", "홉"],
+            "뷔": ["김태형", "뷔", "태형", "태태", "텽이", "태깅", "태효이", "티롱이", "쀠", "티횽이"],
+        }
+        # fmt: off
+        for db_name, member_list in member_dict.items():
+            for member in member_list:
+                if member in query:
+                    re.sub(member, "{멤버}", query)
+                    return {"db_name": db_name, "call_name": member, "query": query}
+        return {"db_name": None, "call_name": None, "query": query}
 
-def find_member(query):
-    # fmt: off
-    member_dict = {
-        "정국": ["정국", "전정국", "정구기", "정꾸기", "구기", "꾸기", "톡희", "전봉장", "전졍국", "정꾸", "전증구기", "꾸꾸", "정큑", "정궁이", "졍구기"],
-        "지민": ["지민", "박지민", "지미니", "뾰아리", "쨔만", "쮀멘", "줴멘", "민", "지미나", "찌미나", "박디민", "바찌미", "짜마니", "쨔마니", "디밍", "디민", "딤인", "짐니", "자마니", "찜니", "짐쨩", "딤읭이", "박짐"],
-        "남준": ["RM", "랩몬", "랩몬스터", "김남준", "남준이", "주니", "남준", "남주니", "쮸니", "남듀니", "핑몬"],
-        "진": ["슥찌", "진", "석찌니", "석지니", "석진", "김석진", "햄찌", "지니"],
-        "슈가": ["민윤기", "슈가", "윤기", "뉸기", "미늉기", "융긔", "늉기", "슉아", "민피디", "민군"],
-        "제이홉": ["정호석", "제이홉", "호석", "호비", "호서기", "호시기", "호서긱", "홉"],
-        "뷔": ["김태형", "뷔", "태형", "태태", "텽이", "태깅", "태효이", "티롱이", "쀠", "티횽이"],
-    }
-    # fmt: off
-    for db_name, member_list in member_dict.items():
-        for member in member_list:
-            if member in query:
-                re.sub(member, "{멤버}", query)
-                return {"db_name": db_name, "call_name": member, "query": query}
-    return {"db_name": None, "call_name": None, "query": query}
+    def find_intent(self, query):
+        intent_json = json.load(open("./chatbot/retriever/data/intent_keyword.json", "r", encoding="utf-8"))
 
+        for intent, keywords in intent_json.items():
+            for keyword in keywords:
+                if keyword in query:
+                    return {"intent": intent}
+        return {"intent": None}
 
-def find_intent(query):
-    intent_dict = {
-        "키": ["키"],
-        "나이": ["나이", "몇 살"],
-        "생일": ["생일"],
-        "태어난곳": ["태어난 곳", "태어난곳", "출생지", "태어났"],
-        "고향": ["고향"],
-        "소속사": ["소속사", "소속"],
-        "국적": ["국적", "어느나라 사람"],
-        "본관": ["본관"],
-        "본명": ["본명"],
-        "혈액형": ["혈액형"],
-        "출신(초등학교)": ["초등학교 출신", "초등학교"],
-        "출신(중학교)": ["중학교 출신", "중학교"],
-        "출신(고등학교)": ["고등학교 출신", "고등학교"],
-        "출신(대학교)": ["대학교 출신", "대학교"],
-        "전공": ["전공", "무슨 과", "무슨과", "학과"],
-        "별명": ["별명", "애칭"],
-        "소속사": ["소속사", "소속"],
-        "데뷔년도": ["데뷔", "데뷔년도", "데뷔일", "데뷔날"],
-        "인스타": ["인스타 주소", "인스타 링크", "SNS 링크", "SNS 주소", "인스타 아이디", "SNS 아이디"],
-        "팔로워수": ["팔로워 수", "팔로워수", "팔로워"],
-        "취미": ["취미"],
-        "발사이즈": ["발사이즈", "발 사이즈"],
-        "반려동물": ["반려동물", "애완동물"],
-        "가족관계": ["가족관계"],
-        "한자": ["한자", "한자이름", "한자 이름"],
-        "예명": ["예명"],
-        "종교": ["종교"],
-        "훈장": ["훈장"],
-        "포지션": ["포지션", "역할", "그룹 내 담당", "담당"],
-        "영어이름": ["영어이름", "영어 이름", "본명 영문", "본명 영어로", "본명을 영어로"],
-        "첫앨범": ["첫 앨범", "첫 앨범 이름", "첫 앨범 제목", "첫 앨범 노래", "첫 앨범 노래 제목", "첫 앨범 노래 이름", "첫번째 앨범", "데뷔 앨범", "데뷔앨범"],
-        "작명자": ["작명자", "작명"],
-    }
-    for intent, keywords in intent_dict.items():
-        for keyword in keywords:
-            if keyword in query:
-                return {"intent": intent}
-    return {"intent": None}
-
-
-def choose_answer_template(db_outputs, query_intent):
-    # query intent와 db_outputs의 일치하는 intent가 있는지 확인 & score 9점 이상
-    for i in range(len(db_outputs["scores"])):
-        if (db_outputs["intent"][i].split(".")[1] == query_intent) and (db_outputs["scores"][i] >= 9):
-            answer_candidates = db_outputs["answers"][i].split(",")
-            # choose answer randomly
-            final_answer = random.choice(answer_candidates)
-            return final_answer
-    return None
-
-
-def fill_answer_slot(answer_template, db_name, call_name):
-    if call_name:
-        answer_template = answer_template.replace("{멤버}", call_name)
-
-    # '{'로 시작하고 '}'로 끝나는 slot 찾기
-    slots = re.findall(r"\{.*?\}", answer_template)
-
-    # slot에 해당하는 정보 찾기 => db.json에서 가져오기
-    for slot in slots:
-        db_json = json.load(open("./chatbot/retriever/data/db.json", "r", encoding="utf-8"))
-
-        # 멤버 관련 질문인 경우
-        if call_name:
-            slot_info = db_json[db_name][slot[1:-1]]
-            answer_template = answer_template.replace(slot, slot_info)
-
-        # 방탄 관련 다른 질문인 경우? ex) 방탄 노래 추천해줘
-
-    # 슬롯을 채우지 못한 경우 None값 반환 => None값이면 생성모델에게 넘기기
-    slots_after = re.findall(r"\{.*?\}", answer_template)
-    if slots_after:
+    def choose_answer_template(self, top3_outputs, query_intent):
+        # query intent와 top3_outputs의 intent가 일치하면서 score 9점 이상
+        for i in range(len(top3_outputs["scores"])):
+            if top3_outputs["intent"][i].split(".")[1] == query_intent and top3_outputs["scores"][i] >= 9:
+                answer_candidates = top3_outputs["answers"][i].split(",")
+                # 랜덤하게 answer template 선택
+                final_answer = random.choice(answer_candidates)
+                return final_answer
         return None
-    return answer_template
+
+    def fill_answer_slot(self, answer_template, db_name, call_name):
+        # answer template에 {멤버} slot을 치환해야 하는 경우
+        if call_name and "{멤버}" in answer_template:
+            answer_template = answer_template.replace("{멤버}", call_name)
+
+        # answer template에 멤버 이외의 slot 확인
+        slots = re.findall(r"\{.*?\}", answer_template)
+
+        # slot에 해당하는 정보 db.json으로부터 fill
+        db_json = json.load(open("./chatbot/retriever/data/db.json", "r", encoding="utf-8"))
+        for slot in slots:
+            # 멤버 관련 질문인 경우
+            if call_name:
+                try:
+                    slot_info = db_json[db_name][slot[1:-1]]
+                    answer_template = answer_template.replace(slot, slot_info)
+                except:
+                    pass
+
+        # 채우지 못한 슬롯 확인
+        slots_after = re.findall(r"\{.*?\}", answer_template)
+        if slots_after:
+            return None
+        return answer_template
+
+    def return_answer(self, query):
+        """
+        Args:
+            query (str): 입력 문장
+        """
+        # 1. 입력 query에서 member slot 추출 및 치환 : {멤버} -> 정국
+        outputs = self.find_member(query)
+        member_replaced_query = outputs["query"]
+        call_name = outputs["call_name"]
+        db_name = outputs["db_name"]
+
+        # 2. 입력 query에서 intent 키워드 매칭
+        outputs = self.find_intent(member_replaced_query)
+        query_intent = outputs["intent"]
+
+        # 3. 입력 query를 Elastic Search를 통해 유사 문장 top3 추출
+        top3_outputs = self.search(member_replaced_query)
+
+        # 4.1 입력 query에 intent가 있는 경우
+        if query_intent:
+            # 4.1.1 answer template 선정
+            answer_template = self.choose_answer_template(top3_outputs, query_intent)
+            # 4.1.2 answer template이 있는 경우
+            if answer_template != None:
+                # 4.1.2.1 answer_template의 slot에 db 정보 채우기
+                filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
+                return filled_answer_template
+            # 4.1.3 answer template이 없는 경우 None 반환 => generation 모델에 전달
+            else:
+                return None
+        # 4.2 입력 query에 intent가 없는 경우 => generation 모델에 전달
+        else:
+            return None
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--config", "-c", type=str, default="retriever_config")
-
-    args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./chatbot/retriever/{args.config}.yaml")
-    elastic_retriever = ElasticRetriever(config)
+    elastic_retriever = ElasticRetriever()
 
     # test
     query = input("query를 입력해주세요: ")
 
-    # member slot이 있는지 찾기
-    outputs = find_member(query)
-    query = outputs["query"]  # 치환된 query
-    call_name = outputs["call_name"]  # query 상의 호칭된 멤버 이름
-    db_name = outputs["db_name"]  # db 검색용 멤버 이름
-
-    # intent 찾기
-    outputs = find_intent(query)
-    query_intent = outputs["intent"]  # query 상의 intent
-
-    # Elastic Search
-    db_outputs = elastic_retriever.search(query)
-
-    # query에 intent가 있는 경우
-    if query_intent != None:
-        # 1.1 answer template 선정 (intent가 일치해야하며 score가 10점 이상)
-        final_answer = choose_answer_template(db_outputs, query_intent)
-        if final_answer != None:
-            # 2. answer template의 {slot}에 db로부터 찾은 정보를 채워넣기
-            filled_final_answer = fill_answer_slot(final_answer, db_name, call_name)
-            if filled_final_answer != None:
-                print(filled_final_answer)
-            else:
-                print("생성 모델로 보냄")
-        # 1.2 적합한 answer template이 없는 경우 생성모델에게
-        else:
-            print("생성 모델로 보냄")
-    else:
-        print("생성 모델로 보냄")
+    answer = elastic_retriever.return_answer(query)
+    print(answer)
