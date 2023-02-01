@@ -614,17 +614,19 @@ def main():
 
     # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
     # Since we make sure that all sequences are of the same length, no attention_mask is needed.
-    def tokenize_function(examples):
+    def tokenize_function(examples):  # 💥수정
         inputs = tokenizer(
-            examples["Q"],
-            padding="max_length",
-            truncation=True,
+            examples[text_column_name],
             max_length=max_seq_length,
-            return_tensors="pt",
+            padding="max_length",
+            stride=5,  # 추가로 반환할 token 수
+            truncation=True,
             return_token_type_ids=False,
             return_attention_mask=False,
+            return_overflowing_tokens=True,
+            return_offsets_mapping=True,
         )
-        return {**inputs}
+        return {"input_ids": inputs["input_ids"]}
 
     tokenized_datasets = datasets.map(
         tokenize_function,
@@ -706,6 +708,49 @@ def main():
             seed=training_args.seed,
             dtype=getattr(jnp, model_args.dtype),
         )
+
+    # 💥 추가
+    import pickle
+
+    # Load pickle
+    with open("../add_words.pickle", "rb") as fr:
+        add_words = pickle.load(fr)
+
+    added_token_num = tokenizer.add_tokens(add_words)
+    print("💩 We have added", added_token_num, "tokens")
+
+    # change FlaxT5ForConditionalGeneration token_embedding resize
+    model.config.vocab_size = len(tokenizer)
+    print("😎 model.config.vocab_size: ", model.config.vocab_size)
+    print(model.params.keys())  # dict_keys(['shared', 'encoder', 'decoder', 'lm_head'])
+    print(model.params["shared"].keys())  # dict_keys(['embedding'])
+    print(model.params["encoder"].keys())  # dict_keys(['block', 'final_layer_norm'])
+    print(model.params["decoder"].keys())  # dict_keys(['block', 'final_layer_norm'])
+    print(model.params["lm_head"].keys())  # dict_keys(["kernel"])
+    # print embedding size
+    print("🥺 embedding before: ", model.params["shared"]["embedding"].shape)  # (50358, 768)
+    print("🎵 kernel before: ", model.params["lm_head"]["kernel"].shape)  # (768, 50358)
+
+    initializer = jax.nn.initializers.kaiming_normal()
+
+    # add new token embedding
+    new_token_embedding = initializer(rng, (added_token_num, model.config.d_model), dtype=jnp.float32)
+    model.params["shared"]["embedding"] = jnp.concatenate([model.params["shared"]["embedding"], new_token_embedding], axis=0)
+    # print("🥺 new token embedding: ", model.params["shared"]["embedding"])
+
+    # check model embeddings shape
+    print(model.config.vocab_size)  # 50358
+    print(len(tokenizer))  # 50575
+    print("🥺 embedding after: ", model.params["shared"]["embedding"].shape)  # (50575, 768)
+
+    # add lm_head kernel for new tokens
+    new_lm_head_kernel = initializer(rng, (model.config.d_model, added_token_num), dtype=jnp.float32)  # (768, 217)
+    model.params["lm_head"]["kernel"] = jnp.concatenate([model.params["lm_head"]["kernel"], new_lm_head_kernel], axis=1)  # (768, 50575)
+    # print("🥺 new lm head kernel: ", model.params["lm_head"]["kernel"])
+
+    # check lm_head kernel shape
+    print("🐥 kernel after: ", model.params["lm_head"]["kernel"].shape)  # (768, 50575)
+    # 💥 추가 끝
 
     # Data collator
     # This one will take care of randomly masking the tokens.
