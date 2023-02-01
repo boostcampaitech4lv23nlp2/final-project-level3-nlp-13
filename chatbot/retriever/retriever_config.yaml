@@ -1,6 +1,6 @@
 data:
   hugging_face_path: nlpotato/chatbot_twitter_ver2
-  db_path: "./chatbot/retriever/data/db.json"
+  db_path: "./chatbot/retriever/data/answer_template.json"
 
 setting:
   path: "./chatbot/retriever/setting.json"
