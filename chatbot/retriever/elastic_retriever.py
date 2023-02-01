@@ -95,7 +95,7 @@ class ElasticRetriever:
 def find_member(query):
     # fmt: off
     member_dict = {
-        "정국": ["정국", "전정국", "정구기", "정꾸기", "구기", "톡희", "전봉장", "전졍국", "정꾸", "전증구기", "꾸꾸", "정큑", "정궁이", "졍구기"],
+        "정국": ["정국", "전정국", "정구기", "정꾸기", "구기", "꾸기", "톡희", "전봉장", "전졍국", "정꾸", "전증구기", "꾸꾸", "정큑", "정궁이", "졍구기"],
         "지민": ["지민", "박지민", "지미니", "뾰아리", "쨔만", "쮀멘", "줴멘", "민", "지미나", "찌미나", "박디민", "바찌미", "짜마니", "쨔마니", "디밍", "디민", "딤인", "짐니", "자마니", "찜니", "짐쨩", "딤읭이", "박짐"],
         "남준": ["RM", "랩몬", "랩몬스터", "김남준", "남준이", "주니", "남준", "남주니", "쮸니", "남듀니", "핑몬"],
         "진": ["슥찌", "진", "석찌니", "석지니", "석진", "김석진", "햄찌", "지니"],
@@ -154,9 +154,9 @@ def find_intent(query):
 
 
 def choose_answer_template(db_outputs, query_intent):
-    # query intent와 db_outputs의 일치하는 intent가 있는지 확인 & score 10점 이상
-    for i in range(len(db_outputs)):
-        if db_outputs["intent"][i].split(".")[1] == query_intent and db_outputs["scores"][i] >= 10:
+    # query intent와 db_outputs의 일치하는 intent가 있는지 확인 & score 9점 이상
+    for i in range(len(db_outputs["scores"])):
+        if (db_outputs["intent"][i].split(".")[1] == query_intent) and (db_outputs["scores"][i] >= 9):
             answer_candidates = db_outputs["answers"][i].split(",")
             # choose answer randomly
             final_answer = random.choice(answer_candidates)
@@ -165,7 +165,8 @@ def choose_answer_template(db_outputs, query_intent):
 
 
 def fill_answer_slot(answer_template, db_name, call_name):
-    answer_template = answer_template.replace("{멤버}", call_name)
+    if call_name:
+        answer_template = answer_template.replace("{멤버}", call_name)
 
     # '{'로 시작하고 '}'로 끝나는 slot 찾기
     slots = re.findall(r"\{.*?\}", answer_template)
@@ -173,9 +174,18 @@ def fill_answer_slot(answer_template, db_name, call_name):
     # slot에 해당하는 정보 찾기 => db.json에서 가져오기
     for slot in slots:
         db_json = json.load(open("./chatbot/retriever/data/db.json", "r", encoding="utf-8"))
-        slot_info = db_json[db_name][slot[1:-1]]
-        answer_template = answer_template.replace(slot, slot_info)
 
+        # 멤버 관련 질문인 경우
+        if call_name:
+            slot_info = db_json[db_name][slot[1:-1]]
+            answer_template = answer_template.replace(slot, slot_info)
+
+        # 방탄 관련 다른 질문인 경우? ex) 방탄 노래 추천해줘
+
+    # 슬롯을 채우지 못한 경우 None값 반환 => None값이면 생성모델에게 넘기기
+    slots_after = re.findall(r"\{.*?\}", answer_template)
+    if slots_after:
+        return None
     return answer_template
 
 
@@ -211,7 +221,10 @@ if __name__ == "__main__":
         if final_answer != None:
             # 2. answer template의 {slot}에 db로부터 찾은 정보를 채워넣기
             filled_final_answer = fill_answer_slot(final_answer, db_name, call_name)
-            print(filled_final_answer)
+            if filled_final_answer != None:
+                print(filled_final_answer)
+            else:
+                print("생성 모델로 보냄")
         # 1.2 적합한 answer template이 없는 경우 생성모델에게
         else:
             print("생성 모델로 보냄")
