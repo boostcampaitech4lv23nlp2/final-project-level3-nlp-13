@@ -14,6 +14,11 @@ pyvirtualdisplay = "^3.0"
 scikit-learn = "^1.2.0"
 soynlp = "^0.0.493"
 pytz = "^2022.7.1"
+jax = "^0.4.2"
+torch = "^1.13.1"
+flax = "^0.6.3"
+evaluate = "^0.4.0"
+konlpy = "^0.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
