@@ -40,7 +40,6 @@ class KinFilter:
                 POS = "NNP"
             self.tagger.add_user_word(token, POS)
 
-    @classmethod
     def filter_by_title(self, title: str) -> bool:
         """
         Args:
@@ -85,20 +84,25 @@ class KinFilter:
             with path.open() as f:
                 ls.append(pd.read_csv(f))
 
+        print(f"Got {len(ls)} csv(s) to preprocess")
         df = pd.concat(ls)
         df.fillna("", inplace=True)
-        df["text"] = df.apply(
-            lambda row: self.clean(row["title"]) + " " + self.clean(row["query"]), axis=1
-        )
-        df["text"] = df.apply(
-            lambda row: row["text"] if self.filter_by_title(row["text"]) else None,
+        df["Q"] = df.apply(
+            lambda row: self.clean(row["title"]) + " " + self.clean(row["query"]),
             axis=1,
         )
 
-        df.dropna(axis=0, how="any", subset="text", inplace=True)
-        df.drop_duplicates(subset="text", inplace=True, ignore_index=True)
-        df["answer"] = df["answer"].apply(self.clean)
-        df = df[["text", "answer"]]
+        df["Q"] = df.apply(
+            lambda row: row["Q"] if self.filter_by_title(row["Q"]) else None,
+            axis=1,
+        )
+
+        df.drop_duplicates(subset="Q", inplace=True, ignore_index=True)
+        df["A"] = df["answer"].apply(self.clean)
+        df = df[df["A"].astype(bool)] # delete rows with empty string ""
+        df = df[df["Q"].astype(bool)]
+        #df.dropna(axis=0, how="any", subset=["Q", "A"], inplace=True)
+        df = df[["Q", "A"]]
         return df
 
     def clean(self, text: str) -> dict:
@@ -108,7 +112,7 @@ class KinFilter:
 
     def remove_noise(self, sentences: typing.List[str]) -> str:
         p = re.compile(
-            r"(ㅈㄱㄴ|제곧내|내공|답변|https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)|파트너스 활동을 통해 일정액의 수수료를 제공받을 수 있음|지식인)"
+            r"(ㅈㄱㄴ|채택|제곧내|내공|답변|https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)|파트너스 활동을 통해 일정액의 수수료를 제공받을 수 있음|지식인)"
         )
         nonnoise = []
         for sent in sentences:
