@@ -63,7 +63,7 @@ def main(args):
         if args.do_preprocess:
             kin_filter = KinFilter()  # TO-DO: vocab.json
             df = kin_filter.preprocess(args.path)
-            df.to_csv(f"data/preprocessed_data/kin/{runtime}.csv", index=False)
+            df.to_csv(f"corpus/data/preprocessed_data/kin/{runtime}.csv", index=False)
             # kin_filter.save_csv(df, f"kin_{runtime}.csv")
 
 
