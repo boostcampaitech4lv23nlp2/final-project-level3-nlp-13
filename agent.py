@@ -11,6 +11,7 @@ from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
 from classes import UserTweet
 from twitter.data_pipeline import TwitterPipeline
+from spam_filter.spam_filter import SpamFilter
 
 # fmt: off
 special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해" ] #TO-Do
@@ -21,12 +22,15 @@ def main():
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
-    print(last_seen_id)
-    print(user_name)
-    print(tweet)
-    # 2. 스팸 필터링
+    # last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
+    # print(last_seen_id)
+    # print(user_name)
+    # print(tweet)
+    tweet = '입닥쳐 말포이'
 
+    # 2. 스팸 필터링
+    print(SpamFilter().sentences_predict(tweet)) # 1이면 스팸, 0이면 아님
+    
     # 3-1. 전처리 & 리트리버
 
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
@@ -41,6 +45,9 @@ def main():
     # 4. 리트리버 결과와 생성 결과 비교 및 선택, 후처리
 
     # 5. 스팸 필터링 (욕설 제거 등)
+    SpamFilter().sentences_predict(tweet) # 1이면 스팸, 0이면 아님
+
+
 
     # 6. twitter로 보내기
 
