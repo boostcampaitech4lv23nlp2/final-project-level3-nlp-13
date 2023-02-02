@@ -36,16 +36,27 @@ def main(config):
         model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
         model.resize_token_embeddings(len(tokenizer))
     model.to("cuda")
+    print("🔥", config.model.name_or_path)
 
     print("🔥 get input...")
     generator = Chatbot_utils(config, tokenizer, model)
     gen_num = 5
-    generator.get_answer("안녕?", gen_num, config.tokenizer.max_length)
-    generator.get_answer("만나서 반가워.", gen_num, config.tokenizer.max_length)
-    generator.get_answer("인공지능의 미래에 대해 어떻게 생각하세요?", gen_num, config.tokenizer.max_length)
-    generator.get_answer("여자친구 선물 추천해줘.", gen_num, config.tokenizer.max_length)
-    generator.get_answer("앞으로 인공지능이 어떻게 발전하게 될까요?", gen_num, config.tokenizer.max_length)
-    generator.get_answer("이제 그만 수업 끝내자.", gen_num, config.tokenizer.max_length)
+
+    inputs = [
+        "안녕?",
+        "만나서 반가워.",
+        "인공지능의 미래에 대해 어떻게 생각하세요?",
+        "여자친구 선물 추천해줘.",
+        "앞으로 인공지능이 어떻게 발전하게 될까요?",
+        "이제 그만 수업 끝내자.",
+        "아 전정국 땜에 괴롭다 귀에대고 들어봐",
+        "이 시기를 지나온 선배아미님들 다시 한번 존경해야되는것같음 👍👍👍.",
+        "영배 선배님… 부디 🙇🏻‍♀️ 뵤아리와 통화를…",
+        "럽셀콘 많이가서 셋리를 다 외우고있을때가 있었는데… 3-4년 전이라는게 안믿김…",
+        "👍👍👍역시ㅎㅎ 오십페이지 무슨 일이랍니까 기절ㅠ",
+    ]
+    for sent in inputs:
+        generator.get_answer(sent, gen_num, config.tokenizer.max_length)
 
 
 if __name__ == "__main__":
