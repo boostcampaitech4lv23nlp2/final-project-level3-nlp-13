@@ -6,9 +6,6 @@ import numpy as np
 import torch
 from chatbot.generator.util import Generator
 from omegaconf import OmegaConf
-from tokenizers import SentencePieceBPETokenizer
-from transformers import (AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer,
-                          GPT2LMHeadModel, PreTrainedTokenizerFast)
 
 
 def main(config):
@@ -33,6 +30,7 @@ def main(config):
     for sent in inputs:
         generator.get_answer(sent, gen_num, config.tokenizer.max_length)
 
+
 if __name__ == "__main__":
     # config 설정
     parser = argparse.ArgumentParser()
@@ -52,5 +50,4 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    main(config)
     main(config)
