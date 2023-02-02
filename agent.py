@@ -10,7 +10,7 @@ from pytz import timezone
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
 from classes import UserTweet
-from twitter.data_pipeline import TwitterPipeline
+from twitter.data_pipeline import TwitterPipeline, TwitterupdatePipeline
 from spam_filter.spam_filter import SpamFilter
 
 # fmt: off
@@ -39,7 +39,7 @@ def main():
     else:
         # 3-1. 전처리 & 리트리버
         data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-        data_pipeline.log(new_entries=[tweet], save_name=today)
+        #data_pipeline.log(new_entries=[tweet], save_name=today)
         elastic_retriever = ElasticRetriever()
         query = "지민 어디서 태어났어?"
         answer = elastic_retriever.return_answer(query)
@@ -54,7 +54,9 @@ def main():
         # SpamFilter().sentences_predict(tweet) # 1이면 스팸, 0이면 아님
 
         # 6. twitter로 보내기
-
+        TwitterupdatePipeline(
+            username = user_name, output_text = answer, last_seen_id = last_seen_id
+        ).update()
 
 if __name__ == "__main__":
 
