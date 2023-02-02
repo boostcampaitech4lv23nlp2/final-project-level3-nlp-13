@@ -72,7 +72,7 @@ class DataPipeline:
         sent = " ".join([token.form for token in sentence.tokens])
         return sent
 
-    def correct_grammar(self, text: str) -> str:
+    def correct_grammar(self, retriever_output) -> str:
         variants = {
             "가": "이",
             "를": "을",
@@ -87,27 +87,36 @@ class DataPipeline:
             "로요": "으로요",
             "로는요": "으로는요",
         }
-        sent_to_check = sent
-        m = re.search(
-            r"(?<=(RM|지민|진|정국|제이홉|남준|태형|석진|호석]))(가|를|는|야|예요|는요|로|로는|로요|로는요)\b",
+        names_with_coda = ["박지민", "지민", "김남준", "남준"]
+        sent_checked = ""
+        sent_to_check = retriever_output["query"]
+        target = retriever_output["db_name"]
+        if target not in names_with_coda:
+            return sent_to_check
+        
+        #m = re.search(f"{target}(?=(가|를|는|야|예요|는요|로|로는|로요|로는요))", sent_to_check)
+
+        sent_to_check = re.sub(
+            f"{target}"+r"((가|를|는|야|예요|는요|로|로는|로요|로는요))",
+            f"{target}"+r"\1",
             sent_to_check,
         )
-        while m:
-            if (
-                "로" in m.group() and self._anlayze_chr(m.group(1))["coda"] == 8
-            ):  # e.g. '호텔'+'(으)로' = '호텔로'
-                sent_checked += sent_to_check[: m.end()]
-            else:
-                sent_checked += (
-                    sent_to_check[: m.start()] + variants[m.group()]
-                )  # e.g. '태형' + '를' => '태형을'
-            sent_to_check = sent_to_check[m.end() :]
-            m = re.search(
-                r"(?<=(RM|지민|진|정국|제이홉|남준|태형|석진|호석]))(가|를|는|야|예요|는요|로|로는|로요|로는요)\b",
-                sent_to_check,
-            )
-        sent = sent_checked + sent_to_check
-        return sent
+        # while m:
+        #     if (
+        #         "로" in m.group() and self._anlayze_chr(m.group(1))["coda"] == 8
+        #     ):  # e.g. '호텔'+'(으)로' = '호텔로'
+        #         sent_checked += sent_to_check[: m.end()]
+        #     else:
+        #         sent_checked += (
+        #             sent_to_check[: m.start()] + variants[m.group()]
+        #         )  # e.g. '태형' + '를' => '태형을'
+        #     sent_to_check = sent_to_check[m.end() :]
+        #     m = re.search(
+        #         r"(?<=\w+)(가|를|는|야|예요|는요|로|로는|로요|로는요)\b",
+        #         sent_to_check,
+        #     )
+        # sent = sent_checked + sent_to_check
+        return sent_to_check
 
     def _analyze_chr(self, character):
         cc = ord(character) - 44032
