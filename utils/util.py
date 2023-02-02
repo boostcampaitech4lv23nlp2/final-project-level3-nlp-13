@@ -1,11 +1,35 @@
 import torch
+from transformers import AutoModelForSeq2SeqLM, GPT2LMHeadModel, PreTrainedTokenizerFast
 
 
 class Chatbot_utils:
-    def __init__(self, config, tokenizer, model):
+    def __init__(self, config):
         self.config = config
         self.tokenizer = tokenizer
         self.model = model
+
+    def get_model(self):
+        model_path: str = self.config.model.name_or_path
+        if "gpt" in model_path:
+            print("🔥 gpt")
+            tokenizer = PreTrainedTokenizerFast.from_pretrained(
+                model_path,
+                bos_token="</s>",
+                eos_token="</s>",
+                sep_token="<sep>",
+                unk_token="<unk>",
+                pad_token="<pad>",
+                mask_token="<mask>",
+            )
+            model = GPT2LMHeadModel.from_pretrained(model_path)
+            model.resize_token_embeddings(len(tokenizer))
+        elif "bart" in model_path or "bart".upper() in model_path or "t5" in model_path or "t5".upper() in model_path:
+            print("🔥 enc-dec")
+            tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
+            model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+            model.resize_token_embeddings(len(tokenizer))
+        model.to("cuda")
+        return model, tokenizer
 
     def encoding(self, text):
         if "gpt" in self.config.model.name_or_path:
