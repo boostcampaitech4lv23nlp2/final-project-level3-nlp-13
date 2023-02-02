@@ -1,14 +1,10 @@
-import os
 from argparse import ArgumentParser
 from datetime import datetime
 
-import numpy as np
-import pandas as pd
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import UserTweet
-from omegaconf import OmegaConf
 from pytz import timezone
+from twitter.data_pipeline import TwitterPipeline
 
 # fmt: off
 special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해" ] #TO-Do
@@ -19,8 +15,10 @@ def main():
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    tweet = UserTweet(user_id="34k73", screen_name="아미1", message="전정국 최고")
-
+    last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
+    print(last_seen_id)
+    print(user_name)
+    print(tweet)
     # 2. 스팸 필터링
 
     # 3-1. 전처리 & 리트리버
