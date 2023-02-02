@@ -10,6 +10,8 @@ from datasets import load_dataset
 from elasticsearch import Elasticsearch, helpers
 from omegaconf import OmegaConf
 
+from classes import RetrieverOutput
+
 warnings.filterwarnings("ignore")
 
 # 데이터 format : {"id": 0, "intent": "질문.생일", "question": "{멤버} 언제 태어났어?", "answer": "{멤버} 생일은 {생일}이야!"}
@@ -111,8 +113,8 @@ class ElasticRetriever:
                 answer_candidates = top3_outputs["answers"][i].split(",")
                 # 랜덤하게 answer template 선택
                 final_answer = random.choice(answer_candidates)
-                return final_answer
-        return None
+                return final_answer, top3_outputs["scores"][i]
+        return None, None
 
     def fill_answer_slot(self, answer_template, db_name, call_name):
         # answer template에 {멤버} slot을 치환해야 하는 경우
@@ -162,18 +164,18 @@ class ElasticRetriever:
         # 4.1 입력 query에 intent가 있는 경우
         if query_intent:
             # 4.1.1 answer template 선정
-            answer_template = self.choose_answer_template(top3_outputs, query_intent)
+            answer_template, bm25_score = self.choose_answer_template(top3_outputs, query_intent)
             # 4.1.2 answer template이 있는 경우
             if answer_template != None:
                 # 4.1.2.1 answer_template의 slot에 db 정보 채우기
                 filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
-                return filled_answer_template
+                return RetrieverOutput(query=filled_answer_template, bm25_score=bm25_score)
             # 4.1.3 answer template이 없는 경우 None 반환 => generation 모델에 전달
             else:
-                return None
+                return RetrieverOutput(query=None, bm25_score=None)
         # 4.2 입력 query에 intent가 없는 경우 => generation 모델에 전달
         else:
-            return None
+            return RetrieverOutput(query=None, bm25_score=None)
 
 
 if __name__ == "__main__":
