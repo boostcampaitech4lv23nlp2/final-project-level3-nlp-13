@@ -55,5 +55,8 @@ class TwitterupdatePipeline:
     output_text: str
     last_seen_id: str
 
+    def __post_init__(self):
+        self.api = tweepy.API(auth, wait_on_rate_limit=True)
+
     def update(self):
         new_status = self.api.update_status("@" + self.username + " " + self.output_text, self.last_seen_id)
