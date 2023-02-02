@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 from pytz import timezone
 
 from chatbot.pipeline.data_pipeline import DataPipeline
+from twitter.data_pipeline import TwitterPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
 from classes import UserTweet
 
@@ -20,8 +21,8 @@ def main():
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    tweet = UserTweet(user_id="34k73", screen_name="아미1", message="전정국 최고")
-
+    tweet = TwitterPipeline(FILE_NAME='./twitter/last_seen_id.txt', username= '@ja_smilee').reply_to_tweets()
+    print(tweet)
     # 2. 스팸 필터링
 
     # 3-1. 전처리 & 리트리버
