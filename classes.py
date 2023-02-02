@@ -20,3 +20,4 @@ class UserTweet(Default):
 class RetrieverOutput(Default):
     query: typing.Optional[str] = None
     bm25_score: typing.Optional[float] = None
+    db_name: typing.Optional[str] = None
