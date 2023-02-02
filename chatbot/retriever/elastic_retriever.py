@@ -29,21 +29,6 @@ def make_db_data():
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
 
-# def make_db_data():
-#     # load data from huggingface dataset
-#     data = load_dataset(config.data.hugging_face_path)
-#     question = data["train"]["Q"] + data["test"]["Q"]
-#     answer = data["train"]["A"] + data["test"]["A"]
-
-#     db_data = [{"id": i, "question": q, "answer": a} for i, (q, a) in enumerate(zip(question, answer))]
-#     # save data to json file
-#     if not os.path.exists("./chatbot/retriever/data"):
-#         os.makedirs("./chatbot/retriever/data")
-
-#     with open(config.data.db_path, "w", encoding="utf-8") as f:
-#         json.dump(db_data, f, ensure_ascii=False, indent=4)
-
-
 class ElasticRetriever:
     def __init__(self):
 
@@ -66,7 +51,7 @@ class ElasticRetriever:
 
         # insert data
         helpers.bulk(self.es, self._get_doc(self.index_name))
-
+        self.es.indices.refresh(index=self.index_name)
         n_records = self.es.count(index=self.index_name)["count"]
 
     def _get_doc(self, index_name):
@@ -102,7 +87,7 @@ class ElasticRetriever:
             "제이홉": ["정호석", "제이홉", "호석", "호비", "호서기", "호시기", "호서긱", "홉"],
             "뷔": ["김태형", "뷔", "태형", "태태", "텽이", "태깅", "태효이", "티롱이", "쀠", "티횽이"],
         }
-        # fmt: off
+        # fmt: on
         for db_name, member_list in member_dict.items():
             for member in member_list:
                 if member in query:
