@@ -5,19 +5,20 @@ import tweepy
 import os
 from kiwipiepy import Kiwi, Sentence, Token
 
+load_dotenv()
+TWITTER_CONSUMER_KEY = os.environ.get("TWITTER_CONSUMER_KEY")
+TWITTER_CONSUMER_SECRET_KEY = os.environ.get("TWITTER_CONSUMER_SECRET_KEY")
+TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_SECRET_TOKEN = os.environ.get("TWITTER_ACCESS_SECRET_TOKEN")
+auth  = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
+auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
+
 @dataclass
 class TwitterPipeline:
     FILE_NAME: str
     username: str
 
     def __post_init__(self):
-        load_dotenv()
-        TWITTER_CONSUMER_KEY = os.environ.get("TWITTER_CONSUMER_KEY")
-        TWITTER_CONSUMER_SECRET_KEY = os.environ.get("TWITTER_CONSUMER_SECRET_KEY")
-        TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
-        TWITTER_ACCESS_SECRET_TOKEN = os.environ.get("TWITTER_ACCESS_SECRET_TOKEN")
-        auth  = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
-        auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
         self.api = tweepy.API(auth, wait_on_rate_limit=True)
 
 
@@ -44,4 +45,4 @@ class TwitterPipeline:
 
             if self.username in mention.full_text.lower(): 
                 input_text = mention.full_text.replace(str(mention.user.screen_name), '').replace("@",'')
-                return input_text
+                return last_seen_id, str(mention.user.screen_name), input_text
