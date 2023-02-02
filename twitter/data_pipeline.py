@@ -47,3 +47,13 @@ class TwitterPipeline:
             if self.username in mention.full_text.lower():
                 input_text = mention.full_text.replace(str(mention.user.screen_name), "").replace("@", "")
                 return last_seen_id, str(mention.user.screen_name), input_text
+
+
+@dataclass
+class TwitterupdatePipeline:
+    username: str
+    output_text: str
+    last_seen_id: str
+
+    def update(self):
+        new_status = self.api.update_status("@" + self.username + " " + self.output_text, self.last_seen_id)

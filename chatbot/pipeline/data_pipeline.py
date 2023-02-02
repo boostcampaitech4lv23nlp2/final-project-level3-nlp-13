@@ -72,7 +72,39 @@ class DataPipeline:
         sent = " ".join([token.form for token in sentence.tokens])
         return sent
 
-    def log(self, new_entries: typing.List[dataclass], save_name:str):
+    def correct_grammar(self, retriever_output) -> str:
+        variants = {
+            "가": "이",
+            "를": "을",
+            "는": "은",
+            "야": "이야",
+            "지": "이지",
+            "랑": "이랑",
+            "예요": "이에요",
+            "는요": "은요",
+            "로": "으로",
+            "로는": "으로는",
+            "로요": "으로요",
+            "로는요": "으로는요",
+        }
+        names_with_coda = ["박지민", "지민", "김남준", "남준", "진", "석진", "김석진", "제이홉", "정호석", "호석", "태형", "김태형", "정국", "전정국"]
+        sent = retriever_output.query
+        target = retriever_output.db_name
+        if target not in names_with_coda:
+            return sent
+
+        for match in re.findall(f"{target}(?=(가|를|는|야|예요|는요|로|로는|로요|로는요))", sent):
+            sent = re.sub(target + match, target + variants[match], sent)
+
+        return sent
+
+    def _analyze_chr(self, character):
+        cc = ord(character) - 44032
+        onset = cc // (21 * 28)
+        coda = cc % 28
+        return {"onset": onset, "coda": coda}
+
+    def log(self, new_entries: typing.List[dataclass], save_name: str):
         """
         Log new entries in dataclass formats
         """
