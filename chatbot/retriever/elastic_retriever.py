@@ -169,13 +169,13 @@ class ElasticRetriever:
             if answer_template != None:
                 # 4.1.2.1 answer_template의 slot에 db 정보 채우기
                 filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
-                return RetrieverOutput(query=filled_answer_template, bm25_score=bm25_score)
+                return RetrieverOutput(query=filled_answer_template, bm25_score=bm25_score, db_name=db_name)
             # 4.1.3 answer template이 없는 경우 None 반환 => generation 모델에 전달
             else:
-                return RetrieverOutput(query=None, bm25_score=None)
+                return RetrieverOutput(query=None, bm25_score=None, db_name=None)
         # 4.2 입력 query에 intent가 없는 경우 => generation 모델에 전달
         else:
-            return RetrieverOutput(query=None, bm25_score=None)
+            return RetrieverOutput(query=None, bm25_score=None, db_name=None)
 
 
 if __name__ == "__main__":
