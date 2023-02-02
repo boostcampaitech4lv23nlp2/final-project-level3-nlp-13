@@ -4,44 +4,19 @@ import random
 
 import numpy as np
 import torch
+from chatbot.generator.util import Generator
 from omegaconf import OmegaConf
 from tokenizers import SentencePieceBPETokenizer
-from transformers import AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer, GPT2LMHeadModel, PreTrainedTokenizerFast
-from utils.util import Chatbot_utils
+from transformers import (AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer,
+                          GPT2LMHeadModel, PreTrainedTokenizerFast)
 
 
 def main(config):
     print("🔥 get model...")
-    if "gpt" in config.model.name_or_path:
-        print("🔥 gpt")
-        tokenizer = PreTrainedTokenizerFast.from_pretrained(
-            config.model.name_or_path,
-            bos_token="</s>",
-            eos_token="</s>",
-            sep_token="<sep>",
-            unk_token="<unk>",
-            pad_token="<pad>",
-            mask_token="<mask>",
-        )
-        model = GPT2LMHeadModel.from_pretrained(config.model.name_or_path)
-        model.resize_token_embeddings(len(tokenizer))
-    elif (
-        "bart" in config.model.name_or_path
-        or "bart".upper() in config.model.name_or_path
-        or "t5" in config.model.name_or_path
-        or "t5".upper() in config.model.name_or_path
-    ):
-        print("🔥 Enc-Dec")
-        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.model.name_or_path)
-        model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
-        model.resize_token_embeddings(len(tokenizer))
-    model.to("cuda")
-    print("🔥", config.model.name_or_path)
+    generator = Generator(config)
 
     print("🔥 get input...")
-    generator = Chatbot_utils(config, tokenizer, model)
     gen_num = 5
-
     inputs = [
         "안녕?",
         "만나서 반가워.",
@@ -57,7 +32,6 @@ def main(config):
     ]
     for sent in inputs:
         generator.get_answer(sent, gen_num, config.tokenizer.max_length)
-
 
 if __name__ == "__main__":
     # config 설정
@@ -78,4 +52,5 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+    main(config)
     main(config)
