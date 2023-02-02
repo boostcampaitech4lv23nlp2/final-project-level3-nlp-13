@@ -2,15 +2,11 @@ import argparse
 import sys
 
 from fastapi import FastAPI
-from fastapi.param_functions import Depends
 from omegaconf import OmegaConf
 from pydantic import BaseModel
-from transformers import AutoModelForSeq2SeqLM
-
-from .model import get_model
 
 sys.path.append("..")  # Adds higher directory to python modules path.
-from utils.util import Chatbot_utils
+from chatbot.generator.util import Generator
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", "-c", type=str, default="base_config")
@@ -28,9 +24,8 @@ class User_input(BaseModel):
 
 
 @app.post("/input", description="주문을 요청합니다")
-async def make_chat(data: User_input, model: AutoModelForSeq2SeqLM = Depends(get_model)):
-    model = get_model(config.model.name_or_path)
-    generator = Chatbot_utils(config, model=model[0], tokenizer=model[1])
+async def make_chat(data: User_input):
+    generator = Generator(config)
     text = data.dict()["sentence"]
     max_len = data.dict()["max_len"]
     top_k = data.dict()["top_k"]

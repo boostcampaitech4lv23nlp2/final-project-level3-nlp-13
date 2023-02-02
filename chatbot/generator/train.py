@@ -63,6 +63,8 @@ def main(config):
     model_path = "".join(model_path.split("_")[:-1])
     if "pretraining" in config.model.name_or_path:
         file_name = f"saved_models/pretrained/{model_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
+    elif "pretrained" in config.model.name_or_path:
+        file_name = f"{config.model.name_or_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
     else:
         file_name = f"saved_models/{model_path}/{data_path}_{config.train.num_train_epochs}epoch_{now_time}"
     if "gpt" in config.model.name_or_path or "gpt".upper() in config.model.name_or_path:

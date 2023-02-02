@@ -1,5 +1,5 @@
 model:
-  name_or_path: hyunwoongko/kobart
+  name_or_path: nlpotato/pko-t5-base-pretraining_finetuning_temp1
 
 tokenizer:
   max_length: 256
