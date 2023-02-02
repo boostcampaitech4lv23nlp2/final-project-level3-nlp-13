@@ -31,36 +31,37 @@ def main():
     # 2. 스팸 필터링
 
     # 2. 스팸 필터링
-    print(SpamFilter().sentences_predict(tweet)) # 1이면 스팸, 0이면 아님
-    
-    # 3-1. 전처리 & 리트리버
+    is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
+    if is_spam:
+        pass
+        # 6. twitter로 "글쎄..." 식의 거절 메시지 보냄
+        #
+    else:
+        # 3-1. 전처리 & 리트리버
+        data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
+        data_pipeline.log(new_entries=[tweet], save_name=today)
+        elastic_retriever = ElasticRetriever()
+        query = "지민 어디서 태어났어?"
+        answer = elastic_retriever.return_answer(query)
+        answer = data_pipeline.correct_grammar(answer)
+        print(answer)
 
-    data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-    data_pipeline.log(new_entries=[tweet], save_name=today)
-    elastic_retriever = ElasticRetriever()
-    query = "지민 어디서 태어났어?"
-    answer = elastic_retriever.return_answer(query)
-    answer = data_pipeline.correct_grammar(answer)
-    print(answer)
+        # 3-2. 전처리 없이? 생성모델
 
-    # 3-2. 전처리 없이? 생성모델
+        # 4. 리트리버 결과와 생성 결과 비교 및 선택, 후처리
 
-    # 4. 리트리버 결과와 생성 결과 비교 및 선택, 후처리
+        # 5. 스팸 필터링 (욕설 제거 등)
+        # SpamFilter().sentences_predict(tweet) # 1이면 스팸, 0이면 아님
 
-    # 5. 스팸 필터링 (욕설 제거 등)
-    SpamFilter().sentences_predict(tweet) # 1이면 스팸, 0이면 아님
-
-
-
-    # 6. twitter로 보내기
+        # 6. twitter로 보내기
 
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
-    parser.add_argument("--datasets", type=str, nargs="+")
-    parser.add_argument("--query", type=str)
-    parser.add_argument("--config", "-c", type=str, default="retriever_config")
+    # parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
+    # parser.add_argument("--datasets", type=str, nargs="+")
+    # parser.add_argument("--query", type=str)
+    # parser.add_argument("--config", "-c", type=str, default="retriever_config")
 
-    args, _ = parser.parse_known_args()
+    # args, _ = parser.parse_known_args()
     main()
