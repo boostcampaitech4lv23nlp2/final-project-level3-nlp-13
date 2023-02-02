@@ -88,35 +88,15 @@ class DataPipeline:
             "로는요": "으로는요",
         }
         names_with_coda = ["박지민", "지민", "김남준", "남준"]
-        sent_checked = ""
-        sent_to_check = retriever_output["query"]
-        target = retriever_output["db_name"]
+        sent = retriever_output.query
+        target = retriever_output.db_name
         if target not in names_with_coda:
-            return sent_to_check
-        
-        #m = re.search(f"{target}(?=(가|를|는|야|예요|는요|로|로는|로요|로는요))", sent_to_check)
+            return sent
 
-        sent_to_check = re.sub(
-            f"{target}"+r"((가|를|는|야|예요|는요|로|로는|로요|로는요))",
-            f"{target}"+r"\1",
-            sent_to_check,
-        )
-        # while m:
-        #     if (
-        #         "로" in m.group() and self._anlayze_chr(m.group(1))["coda"] == 8
-        #     ):  # e.g. '호텔'+'(으)로' = '호텔로'
-        #         sent_checked += sent_to_check[: m.end()]
-        #     else:
-        #         sent_checked += (
-        #             sent_to_check[: m.start()] + variants[m.group()]
-        #         )  # e.g. '태형' + '를' => '태형을'
-        #     sent_to_check = sent_to_check[m.end() :]
-        #     m = re.search(
-        #         r"(?<=\w+)(가|를|는|야|예요|는요|로|로는|로요|로는요)\b",
-        #         sent_to_check,
-        #     )
-        # sent = sent_checked + sent_to_check
-        return sent_to_check
+        for match in re.findall(f"{target}(?=(가|를|는|야|예요|는요|로|로는|로요|로는요))", sent):
+            sent = re.sub(target + match, target + variants[match], sent)
+
+        return sent
 
     def _analyze_chr(self, character):
         cc = ord(character) - 44032

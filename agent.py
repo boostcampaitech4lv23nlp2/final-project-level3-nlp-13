@@ -20,10 +20,12 @@ def main():
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    #last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
-    #print(last_seen_id)
-    #print(user_name)
-    #print(tweet)
+    last_seen_id, user_name, tweet = TwitterPipeline(
+        FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee"
+    ).reply_to_tweets()
+    print(last_seen_id)
+    print(user_name)
+    print(tweet)
     # 2. 스팸 필터링
 
     # 3-1. 전처리 & 리트리버
@@ -31,7 +33,7 @@ def main():
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     data_pipeline.log(new_entries=[tweet], save_name=today)
     elastic_retriever = ElasticRetriever()
-    query = "지민이 생일이 언제야?"
+    query = "지민 어디서 태어났어?"
     answer = elastic_retriever.return_answer(query)
     answer = data_pipeline.correct_grammar(answer)
     print(answer)
