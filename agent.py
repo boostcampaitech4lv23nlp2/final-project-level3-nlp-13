@@ -21,7 +21,9 @@ def main():
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
+    last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
+    print(last_seen_id)
+    print(user_name)
     print(tweet)
     # 2. 스팸 필터링
 
