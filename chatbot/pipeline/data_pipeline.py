@@ -87,7 +87,7 @@ class DataPipeline:
             "로요": "으로요",
             "로는요": "으로는요",
         }
-        names_with_coda = ["박지민", "지민", "김남준", "남준"]
+        names_with_coda = ["박지민", "지민", "김남준", "남준", "진", "석진", "김석진", "제이홉", "정호석", "호석", "태형", "김태형", "정국", "전정국"]
         sent = retriever_output.query
         target = retriever_output.db_name
         if target not in names_with_coda:
