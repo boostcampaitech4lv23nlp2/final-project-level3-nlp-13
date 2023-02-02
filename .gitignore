@@ -211,3 +211,4 @@ klue-roberta-retrained/
 nohup.out
 
 chatbot/retriever/logs
+!chatbot/retriever/data
