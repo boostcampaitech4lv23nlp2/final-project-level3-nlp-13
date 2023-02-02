@@ -1,8 +1,10 @@
 from argparse import ArgumentParser
 from datetime import datetime
 
+from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
+from omegaconf import OmegaConf
 from pytz import timezone
 from twitter.data_pipeline import TwitterPipeline
 
@@ -11,7 +13,7 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 # fmt: on
 
 
-def main():
+def main(config):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
@@ -31,6 +33,9 @@ def main():
     print(answer)
 
     # 3-2. 전처리 없이? 생성모델
+    query = "지민이 생일이 언제야?"
+    generator = Generator(config)
+    print(generator.get_answer(query, 2, 256))
 
     # 4. 리트리버 결과와 생성 결과 비교 및 선택, 후처리
 
@@ -44,7 +49,9 @@ if __name__ == "__main__":
     parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
     parser.add_argument("--datasets", type=str, nargs="+")
     parser.add_argument("--query", type=str)
-    parser.add_argument("--config", "-c", type=str, default="retriever_config")
+    parser.add_argument("--config", "-c", type=str, default="base_config")
 
     args, _ = parser.parse_known_args()
-    main()
+    config = OmegaConf.load(f"./config/{args.config}.yaml")
+
+    main(config)
