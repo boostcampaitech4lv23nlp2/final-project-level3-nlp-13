@@ -4,7 +4,6 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-from omegaconf import OmegaConf
 from pytz import timezone
 
 from chatbot.pipeline.data_pipeline import DataPipeline
@@ -31,6 +30,7 @@ def main():
     elastic_retriever = ElasticRetriever()
     query = "지민이 생일이 언제야?"
     answer = elastic_retriever.return_answer(query)
+    answer = data_pipeline.correct_grammar(answer)
     print(answer)
 
     # 3-2. 전처리 없이? 생성모델
