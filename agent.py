@@ -36,12 +36,12 @@ def main(config):
         # data_pipeline.log(new_entries=[tweet], save_name=today)
         elastic_retriever = ElasticRetriever()
         retrieved = elastic_retriever.return_answer(tweet)
-        if retrieved.bm25_score > 9:
+        if retrieved.bm25_score is not None:
             my_answer = data_pipeline.correct_grammar(retrieved)
         else:
             # 3-2. 전처리 없이? 생성모델
             generator = Generator(config)
-            my_answer = generator.get_answer(query, 2, 256)
+            my_answer = generator.get_answer(tweet, 1, 256)
 
             # TO-DO: 생성 결과후처리
 
