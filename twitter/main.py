@@ -15,10 +15,10 @@ from utils.util import Chatbot_utils
 
 
 load_dotenv()
-TWITTER_CONSUMER_KEY = os.environ.get("CONSUMER_KEY")
-TWITTER_CONSUMER_SECRET_KEY = os.environ.get("CONSUMER_SECRET")
-TWITTER_ACCESS_TOKEN = os.environ.get("ACCESS_KEY")
-TWITTER_ACCESS_SECRET_TOKEN = os.environ.get("ACCESS_SECRET")
+TWITTER_CONSUMER_KEY = os.environ.get("TWITTER_CONSUMER_KEY")
+TWITTER_CONSUMER_SECRET_KEY = os.environ.get("TWITTER_CONSUMER_SECRET_KEY")
+TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_SECRET_TOKEN = os.environ.get("TWITTER_ACCESS_SECRET_TOKEN")
 
 auth  = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
 auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
@@ -96,7 +96,7 @@ def reply_to_tweets():
                     output_text = str(output_text).replace(input_text[1:], "")
 
             # 3. 답글 업로드
-            new_status = api.update_status("@"+ mention.user.screen_name + " " + output_text, mention.id) 
+            #new_status = api.update_status("@"+ mention.user.screen_name + " " + output_text, mention.id) 
             print("💬 retweeted_id:", "@"+ mention.user.screen_name , "/ 💬 retweet_text: ", output_text)
             print()
 
