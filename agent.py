@@ -19,16 +19,12 @@ def main(config):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    last_seen_id, user_name, tweet = TwitterPipeline(
-        FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp"
-    ).reply_to_tweets()
+    last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp").reply_to_tweets()
 
     # 2. 스팸 필터링
     is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
     if is_spam:
-        TwitterupdatePipeline(
-            username=user_name, output_text="글쎄...", last_seen_id=last_seen_id
-        ).update()
+        TwitterupdatePipeline(username=user_name, output_text="글쎄...", last_seen_id=last_seen_id).update()
 
     else:
         # 3-1. 전처리 & 리트리버
@@ -46,9 +42,7 @@ def main(config):
             # TO-DO: 생성 결과후처리
 
         # 6. twitter로 보내기
-        TwitterupdatePipeline(
-            username=user_name, output_text=my_answer, last_seen_id=last_seen_id
-        ).update()
+        TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
 
 
 if __name__ == "__main__":
