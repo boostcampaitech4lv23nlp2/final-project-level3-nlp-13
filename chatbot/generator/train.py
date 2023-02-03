@@ -1,5 +1,7 @@
 import argparse
 import datetime
+import os
+import pickle
 import re
 
 import numpy as np
@@ -53,7 +55,14 @@ def main(config):
             model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path, from_flax=True)
         else:
             model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
-    model.resize_token_embeddings(len(tokenizer))
+
+    add_words_file = "../../add_words.pickle"
+    if os.path.exists(add_words_file):
+        with open(add_words_file, "rb") as fr:
+            add_words = pickle.load(fr)
+        added_token_num = tokenizer.add_tokens(add_words)
+        model.resize_token_embeddings(len(tokenizer))
+
     model.to("cuda")
 
     print("🔥 start training...")
