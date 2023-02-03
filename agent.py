@@ -19,38 +19,36 @@ def main(config):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
-    last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee").reply_to_tweets()
-    print(last_seen_id)
-    print(user_name)
-    print(tweet)
+    last_seen_id, user_name, tweet = TwitterPipeline(
+        FILE_NAME="./twitter/last_seen_id.txt", username="@ja_smilee"
+    ).reply_to_tweets()
 
     # 2. 스팸 필터링
     is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
     if is_spam:
-        pass
-        # 6. twitter로 "글쎄..." 식의 거절 메시지 보냄
-        #
+        TwitterupdatePipeline(
+            username=user_name, output_text="글쎄...", last_seen_id=last_seen_id
+        ).update()
+
     else:
         # 3-1. 전처리 & 리트리버
         data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
         # data_pipeline.log(new_entries=[tweet], save_name=today)
         elastic_retriever = ElasticRetriever()
-        query = "지민 어디서 태어났어?"
-        answer = elastic_retriever.return_answer(query)
-        answer = data_pipeline.correct_grammar(answer)
-        print(answer)
+        retrieved = elastic_retriever.return_answer(tweet)
+        if retrieved.score > 9:
+            my_answer = data_pipeline.correct_grammar(retrieved)
+        else:
+            # 3-2. 전처리 없이? 생성모델
+            generator = Generator(config)
+            my_answer = generator.get_answer(query, 2, 256)
 
-        # 3-2. 전처리 없이? 생성모델
-        generator = Generator(config)
-        print(generator.get_answer(query, 2, 256))
-
-        # 4. 리트리버 결과와 생성 결과 비교 및 선택, 후처리
-
-        # 5. 스팸 필터링 (욕설 제거 등)
-        # SpamFilter().sentences_predict(tweet) # 1이면 스팸, 0이면 아님
+            # TO-DO: 생성 결과후처리
 
         # 6. twitter로 보내기
-        TwitterupdatePipeline(username=user_name, output_text=answer, last_seen_id=last_seen_id).update()
+        TwitterupdatePipeline(
+            username=user_name, output_text=my_answer, last_seen_id=last_seen_id
+        ).update()
 
 
 if __name__ == "__main__":
@@ -63,4 +61,5 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args()
     config = OmegaConf.load(f"./config/{args.config}.yaml")
 
+    # TO-DO: 각 submodule init은 여기서 하고 instances를 main안에 넣어주기
     main(config)
