@@ -1,3 +1,4 @@
+import time
 from argparse import ArgumentParser
 from datetime import datetime
 
@@ -18,37 +19,37 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 def main(config):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
-    # 1. twitter api에서 메시지 불러오기
-    last_seen_id, user_name, tweet = TwitterPipeline(
-        FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp"
-    ).reply_to_tweets()
+    try:
+        # 1. twitter api에서 메시지 불러오기
+        last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@stoneseller0216").reply_to_tweets()
 
-    # 2. 스팸 필터링
-    is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
-    if is_spam:
-        TwitterupdatePipeline(
-            username=user_name, output_text="글쎄...", last_seen_id=last_seen_id
-        ).update()
+        # 2. 스팸 필터링
+        is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
 
-    else:
-        # 3-1. 전처리 & 리트리버
-        data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-        # data_pipeline.log(new_entries=[tweet], save_name=today)
-        elastic_retriever = ElasticRetriever()
-        retrieved = elastic_retriever.return_answer(tweet)
-        if retrieved.bm25_score is not None:
-            my_answer = data_pipeline.correct_grammar(retrieved)
+        if is_spam:
+            TwitterupdatePipeline(username=user_name, output_text="글쎄...", last_seen_id=last_seen_id).update()
+
         else:
-            # 3-2. 전처리 없이? 생성모델
-            generator = Generator(config)
-            my_answer = generator.get_answer(tweet, 1, 256)
+            # 3-1. 전처리 & 리트리버
+            data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
+            # data_pipeline.log(new_entries=[tweet], save_name=today)
+            elastic_retriever = ElasticRetriever()
 
-            # TO-DO: 생성 결과후처리
+            retrieved = elastic_retriever.return_answer(tweet)
 
-        # 6. twitter로 보내기
-        TwitterupdatePipeline(
-            username=user_name, output_text=my_answer, last_seen_id=last_seen_id
-        ).update()
+            if retrieved.query is not None:
+                my_answer = data_pipeline.correct_grammar(retrieved)
+            else:
+                # 3-2. 전처리 없이? 생성모델
+                generator = Generator(config)
+                my_answer = generator.get_answer(tweet, 1, 256)
+
+                # TO-DO: 생성 결과후처리
+
+            # 6. twitter로 보내기
+            TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
+    except:
+        print("no tweets")
 
 
 if __name__ == "__main__":
@@ -62,4 +63,6 @@ if __name__ == "__main__":
     config = OmegaConf.load(f"./config/{args.config}.yaml")
 
     # TO-DO: 각 submodule init은 여기서 하고 instances를 main안에 넣어주기
-    main(config)
+    while True:
+        main(config)
+        time.sleep(30)
