@@ -27,8 +27,10 @@ class TwitterPipeline:
     def get_mentions(self):
         new_tweets = []
         for tweet in tweepy.Cursor(
-            api.mentions_timeline, since_id=self.since_id
+            self.api.mentions_timeline, since_id=self.since_id
         ).items():
+            print("================")
+            print(tweet.id)
             if tweet.id <= self.since_id:
                 continue
             self.since_id = tweet.id
@@ -38,6 +40,7 @@ class TwitterPipeline:
         return new_tweets
 
     def reply_tweet(self, tweet, reply):
+
         self.api.update_status(status=reply, in_reply_to_status_id=tweet.id)
 
     def retrieve_last_since_id(self):
@@ -62,6 +65,7 @@ class TwitterPipeline:
                 input_text = mention.full_text.replace(
                     str(mention.user.screen_name), ""
                 ).replace("@", "")
+                print(input_text)
                 return last_seen_id, str(mention.user.screen_name), input_text
 
 
