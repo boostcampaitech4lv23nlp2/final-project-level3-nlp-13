@@ -1,8 +1,14 @@
+import os
+
 import pandas as pd
 import pyarrow as pa
 import pyarrow.dataset as ds
 import torch
 from datasets import Dataset, DatasetDict, load_dataset
+from dotenv import load_dotenv
+
+load_dotenv()
+AUTH_TOKEN = os.environ.get("HuggingFace_Org_Token")
 
 
 class GPT_Dataset:
@@ -10,7 +16,7 @@ class GPT_Dataset:
         self.config = config
         self.tokenizer = tokenizer
         self.max_len = self.config.tokenizer.max_length
-        self.raw_datasets = load_dataset(self.config.path.data)
+        self.raw_datasets = load_dataset(self.config.path.data, use_auth_token=AUTH_TOKEN)
         self.tokenized_datasets = self.raw_datasets.map(
             self.tokenize,
             batched=True,
@@ -38,7 +44,7 @@ class Enc_Dec_Dataset:
         self.config = config
         self.tokenizer = tokenizer
         self.max_len = self.config.tokenizer.max_length
-        self.raw_datasets = load_dataset(self.config.path.data)
+        self.raw_datasets = load_dataset(self.config.path.data, use_auth_token=AUTH_TOKEN)
         self.tokenized_datasets = self.raw_datasets.map(
             self.tokenize,
             batched=True,
