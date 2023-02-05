@@ -21,8 +21,9 @@ def main(config, twitter_pipeline):
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
 
-    for tweet in new_tweets:
+    for tweet in reversed(new_tweets):
         usr_msg = tweet.text
+        print(usr_msg)
         # 2. 스팸 필터링
         is_spam = SpamFilter().sentences_predict(usr_msg)  # 1이면 스팸, 0이면 아님
         if is_spam:
@@ -34,6 +35,7 @@ def main(config, twitter_pipeline):
             # data_pipeline.log(new_entries=[tweet], save_name=today)
             elastic_retriever = ElasticRetriever()
             usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
+            print(usr_msg_preprocessed)
             retrieved = elastic_retriever.return_answer(usr_msg_preprocessed)
             if retrieved.query is not None:
                 my_reply = data_pipeline.correct_grammar(retrieved)

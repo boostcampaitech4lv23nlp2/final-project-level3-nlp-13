@@ -29,9 +29,7 @@ class TwitterPipeline:
         for tweet in tweepy.Cursor(
             self.api.mentions_timeline, since_id=self.since_id
         ).items():
-            print("================")
-            print(tweet.id)
-            if tweet.id <= self.since_id:
+            if tweet.id <= self.since_id or self.username in tweet.text.lower():
                 continue
             self.since_id = tweet.id
             new_tweets.append(tweet)
