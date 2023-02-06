@@ -32,9 +32,7 @@ def main(config):
         else:
             # 3-1. 전처리 & 리트리버
             data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-            # data_pipeline.log(new_entries=[tweet], save_name=today)
             elastic_retriever = ElasticRetriever()
-
             retrieved = elastic_retriever.return_answer(tweet)
 
             if retrieved.query is not None:
@@ -50,8 +48,18 @@ def main(config):
             # 6. twitter로 보내기
 
             TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
+    
+        # log: user message + screen name + bot answer
+        data_pipeline.log(
+            new_entries=[
+                UserTweet(screen_name=user_name, message=tweet, reply=my_answer)
+            ],
+            save_name=today,
+        )
+    
     except Exception as e:
         print(e)
+
 
 
 if __name__ == "__main__":
