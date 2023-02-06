@@ -21,7 +21,7 @@ def main(config):
 
     try:
         # 1. twitter api에서 메시지 불러오기
-        last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@stoneseller0216").reply_to_tweets()
+        last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13").reply_to_tweets()
 
         # 2. 스팸 필터링
         is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
@@ -44,12 +44,14 @@ def main(config):
                 generator = Generator(config)
                 my_answer = generator.get_answer(tweet, 1, 256)
 
-                # TO-DO: 생성 결과후처리
+                if "<account>" in my_answer:
+                    my_answer = my_answer.replace("<account>", user_name)
 
             # 6. twitter로 보내기
+
             TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
-    except:
-        print("no tweets")
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":
@@ -63,6 +65,7 @@ if __name__ == "__main__":
     config = OmegaConf.load(f"./config/{args.config}.yaml")
 
     # TO-DO: 각 submodule init은 여기서 하고 instances를 main안에 넣어주기
+    print("Agent is running...")
     while True:
         main(config)
         time.sleep(30)
