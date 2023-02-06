@@ -1,34 +1,8 @@
-### 트위터 사용 방법
-1. `.env` 파일에 개인 계정 key 및 token을 작성 (`.env.template` 참고)
-2. 크롤링하고자 하는 user의 screen_name(@은제외)을 아래와 같이 입력
-3. `python build_corpus.py -c=twitter -s=<screen_name>`
+# BTS를 덕질하는 트위터 챗봇, ArmyBot 
 
+## 프로젝트 소개
+같이 덕질하자! ArmyBot은 흔한 아미 트친(BTS을 응원하는 트위터 친구)처럼 이런 저런 이야기를 나눌 수 있는 챗봇 서비스입니다. BTS 관련 덕심 가득한 질문부터 일상 대화까지 @armybot_13으로 트윗만 보내면 ArmyBot이 답장을 합니다.
 
-### 네이버 사용 방법
-`python build_cropus.py -c=naver -n=100 -q=BTS`
-## Args
-* n : 크롤링할 기사 수
-* q : 검색할 스트링
+![service example](https://im4.ezgif.com/tmp/ezgif-4-cd776a171a.gif)
 
-
-### 더쿠 사용 방법
-1. chromedriver 설치 필수.
-2. 크롤링하고자 하는 페이지의 수를 입력. 한 페이지당 20개의 링크.
-3. `python build_corpus.py -c=theqoo -n=100
-
-### 트위터 챗봇 실행 방법
-
-main.py에 username에 챗봇의 트위터 유저 아이디를 입력한다.
-```
-python main.py
-```
-
-#### config 
-name은 generation model, spam은 classification model 명을 작성한다.
-
-#### tweepy 버전 정보
-```
-pip uninstall tweepy
-pip install tweepy==3.7
-```
-
+## 프로젝트 구조 
