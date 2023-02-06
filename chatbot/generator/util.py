@@ -1,9 +1,23 @@
+import os
+import random
+
+import numpy as np
 import torch
 from transformers import AutoModelForSeq2SeqLM, GPT2LMHeadModel, PreTrainedTokenizerFast
 
 
 class Generator:
     def __init__(self, config):
+        # seed 설정
+        SEED = 42
+        random.seed(SEED)
+        np.random.seed(SEED)
+        os.environ["PYTHONHASHSEED"] = str(SEED)
+        torch.manual_seed(SEED)
+        torch.cuda.manual_seed(SEED)
+        torch.cuda.manual_seed_all(SEED)  # if use multi-GPU
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         self.config = config
         self.get_model()
 
