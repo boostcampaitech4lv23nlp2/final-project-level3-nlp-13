@@ -214,3 +214,4 @@ chatbot/retriever/logs
 pretraining/command
 !chatbot/retriever/data
 *.out
+log

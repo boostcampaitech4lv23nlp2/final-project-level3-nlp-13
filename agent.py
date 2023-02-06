@@ -23,6 +23,7 @@ def main(config):
         # 1. twitter api에서 메시지 불러오기
         last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13").reply_to_tweets()
         tweet = tweet.lower()
+        tweet = tweet.replace("armybot_13","").strip()
 
         # 2. 스팸 필터링
         is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
