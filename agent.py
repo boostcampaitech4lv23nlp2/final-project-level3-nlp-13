@@ -20,7 +20,7 @@ def main(config):
 
     # 1. twitter api에서 메시지 불러오기
     last_seen_id, user_name, tweet = TwitterPipeline(
-        FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp"
+        FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13"
     ).reply_to_tweets()
 
     # 2. 스팸 필터링
@@ -33,7 +33,6 @@ def main(config):
     else:
         # 3-1. 전처리 & 리트리버
         data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-        # data_pipeline.log(new_entries=[tweet], save_name=today)
         elastic_retriever = ElasticRetriever()
         retrieved = elastic_retriever.return_answer(tweet)
         if retrieved.bm25_score is not None:
@@ -54,7 +53,8 @@ def main(config):
         data_pipeline.log(
             new_entries=[
                 UserTweet(screen_name=user_name, message=tweet, reply=my_answer)
-            ]
+            ],
+            save_name=today,
         )
 
 
