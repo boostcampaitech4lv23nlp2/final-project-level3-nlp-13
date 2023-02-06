@@ -21,17 +21,13 @@ def main(config):
 
     try:
         # 1. twitter api에서 메시지 불러오기
-        last_seen_id, user_name, tweet = TwitterPipeline(
-            FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13"
-        ).reply_to_tweets()
+        last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13").reply_to_tweets()
 
         # 2. 스팸 필터링
         is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
 
         if is_spam:
-            TwitterupdatePipeline(
-                username=user_name, output_text="글쎄...", last_seen_id=last_seen_id
-            ).update()
+            TwitterupdatePipeline(username=user_name, output_text="글쎄...", last_seen_id=last_seen_id).update()
 
         else:
             # 3-1. 전처리 & 리트리버
@@ -51,15 +47,11 @@ def main(config):
 
             # 6. twitter로 보내기
 
-            TwitterupdatePipeline(
-                username=user_name, output_text=my_answer, last_seen_id=last_seen_id
-            ).update()
+            TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
 
         # log: user message + screen name + bot answer
         data_pipeline.log(
-            new_entries=[
-                UserTweet(screen_name=user_name, message=tweet, reply=my_answer)
-            ],
+            new_entries=[UserTweet(screen_name=user_name, message=tweet, reply=my_answer)],
             save_name=today,
         )
 
