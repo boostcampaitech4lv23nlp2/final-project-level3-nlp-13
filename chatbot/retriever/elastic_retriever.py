@@ -4,13 +4,15 @@ import os
 import random
 import re
 import warnings
-
+import sys
 import pandas as pd
 from datasets import load_dataset
 from elasticsearch import Elasticsearch, helpers
 from omegaconf import OmegaConf
 
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
 from classes import RetrieverOutput
+
 
 warnings.filterwarnings("ignore")
 
@@ -83,17 +85,19 @@ class ElasticRetriever:
         member_dict = {
             "정국": ["정국", "전정국", "정구기", "정꾸기", "구기", "꾸기", "톡희", "전봉장", "전졍국", "정꾸", "전증구기", "꾸꾸", "정큑", "정궁이", "졍구기"],
             "지민": ["지민", "박지민", "지미니", "뾰아리", "쨔만", "쮀멘", "줴멘", "민", "지미나", "찌미나", "박디민", "바찌미", "짜마니", "쨔마니", "디밍", "디민", "딤인", "짐니", "자마니", "찜니", "짐쨩", "딤읭이", "박짐"],
-            "RM": ["RM", "랩몬", "랩몬스터", "김남준", "남준이", "주니", "남준", "남주니", "쮸니", "남듀니", "핑몬", "알엠"],
+            "RM": ["RM", "랩몬", "랩몬스터", "김남준", "남준이", "주니", "남준", "남주니", "쮸니", "남듀니", "핑몬", "알엠", "rm"],
             "진": ["슥찌", "진", "석찌니", "석지니", "석진", "김석진", "햄찌", "지니"],
             "슈가": ["민윤기", "슈가", "윤기", "뉸기", "미늉기", "융긔", "늉기", "슉아", "민피디", "민군"],
             "제이홉": ["정호석", "제이홉", "호석", "호비", "호서기", "호시기", "호서긱", "홉"],
-            "뷔": ["김태형", "뷔", "태형", "태태", "텽이", "태깅", "태효이", "티롱이", "쀠", "티횽이"],
+            "뷔": ["김태형", "뷔", "태형", "태태", "텽이", "태깅", "태효이", "티롱이", "쀠", "티횽이", "V", "v"],
+            "BTS": ["방탄소년단", "방탄", "BTS", "bts", "비티엣스"]
         }
         # fmt: on
         for db_name, member_list in member_dict.items():
             for member in member_list:
                 if member in query:
-                    re.sub(member, "{멤버}", query)
+                    query = re.sub(member, "{멤버}", query)
+                    query = re.sub("데{멤버}년도", "데뷔년도", query) 
                     return {"db_name": db_name, "call_name": member, "query": query}
         return {"db_name": None, "call_name": None, "query": query}
 
@@ -101,8 +105,9 @@ class ElasticRetriever:
         intent_json = json.load(open("./chatbot/retriever/data/intent_keyword.json", "r", encoding="utf-8"))
 
         for intent, keywords in intent_json.items():
-            for keyword in keywords:
-                if keyword in query:
+            keywords_list = keywords["words"].split(",")
+            for keyword in keywords_list:
+                if keyword.strip() in query:
                     return {"intent": intent}
         return {"intent": None}
 
@@ -131,11 +136,23 @@ class ElasticRetriever:
             # 멤버 관련 질문인 경우
             if call_name:
                 try:
-                    slot_info = db_json[db_name][slot[1:-1]]
-
+                    print("💜 db_name: ", db_name)
+                    if db_name == "BTS":
+                        slot_info_candidate = db_json[db_name][slot[1:-1]].split(",")
+                        slot_info = random.choice(slot_info_candidate).strip()
+                    else:
+                        slot_info = db_json[db_name][slot[1:-1]]
                     answer_template = answer_template.replace(slot, slot_info)
                 except:
                     pass
+            else:
+                pass
+                # try:
+                #     slot_info_list = db_json
+                #     slot_info = random.choice(slot_info_list)
+                #     answer_template = answer_template.replace(slot, slot_info)
+                # except:
+                #     pass
 
         # 채우지 못한 슬롯 확인
         slots_after = re.findall(r"\{.*?\}", answer_template)
@@ -151,8 +168,8 @@ class ElasticRetriever:
         # 1. 입력 query에서 member slot 추출 및 치환 : {멤버} -> 정국
         outputs = self.find_member(query)
         member_replaced_query = outputs["query"]
-        call_name = outputs["call_name"]
-        db_name = outputs["db_name"]
+        call_name = outputs["call_name"] # 없으면 None
+        db_name = outputs["db_name"] # 없으면 None
 
         # 2. 입력 query에서 intent 키워드 매칭
         outputs = self.find_intent(member_replaced_query)
@@ -173,9 +190,20 @@ class ElasticRetriever:
             # 4.1.3 answer template이 없는 경우 None 반환 => generation 모델에 전달
             else:
                 return RetrieverOutput(query=None, bm25_score=None, db_name=None)
-        # 4.2 입력 query에 intent가 없는 경우 => generation 모델에 전달
+        # 4.2 입력 query에 intent가 없는 경우
         else:
-            return RetrieverOutput(query=None, bm25_score=None, db_name=None)
+            # Elastic Search output에서 intent가 chitchat인 경우
+            if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 6:
+                candidate_answer_templates = top3_outputs["answers"][0].split(",")
+                # 랜덤하게 answer template 선택
+                answer_template = random.choice(candidate_answer_templates)
+                # answer_template의 slot에 db 정보 채우기
+                filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
+                return RetrieverOutput(query=filled_answer_template, bm25_score=top3_outputs["scores"][0], db_name=None)
+            # => generation 모델에 전달
+            else:
+                return RetrieverOutput(query=None, bm25_score=None, db_name=None)
+
 
 
 if __name__ == "__main__":
