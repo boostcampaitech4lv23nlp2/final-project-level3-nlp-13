@@ -50,6 +50,13 @@ def main(config):
             username=user_name, output_text=my_answer, last_seen_id=last_seen_id
         ).update()
 
+        # log: user message + screen name + bot answer
+        data_pipeline.log(
+            new_entries=[
+                UserTweet(screen_name=user_name, message=tweet, reply=my_answer)
+            ]
+        )
+
 
 if __name__ == "__main__":
 
