@@ -136,7 +136,6 @@ class ElasticRetriever:
             # 멤버 관련 질문인 경우
             if call_name:
                 try:
-                    print("💜 db_name: ", db_name)
                     if db_name == "BTS":
                         slot_info_candidate = db_json[db_name][slot[1:-1]].split(",")
                         slot_info = random.choice(slot_info_candidate).strip()
