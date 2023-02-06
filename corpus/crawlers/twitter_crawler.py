@@ -24,9 +24,7 @@ class TwitterCrawler:
         Args:
             screen_name (str): 크롤링할 특정 트위터 유저 screen_name
         """
-        self.auth = tweepy.OAuthHandler(
-            TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY
-        )
+        self.auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
         self.auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
         self.api = tweepy.API(self.auth, wait_on_rate_limit=True)
 
@@ -47,9 +45,7 @@ class TwitterCrawler:
 
         get_followed_ids = self.api.get_friend_ids(screen_name=self.screen_name)
         for followed_id in get_followed_ids:
-            following_screen_names.append(
-                self.api.get_user(user_id=followed_id).screen_name
-            )
+            following_screen_names.append(self.api.get_user(user_id=followed_id).screen_name)
         following_screen_names.append(self.screen_name)
         if len(following_screen_names) > 100:
             following_screen_names = following_screen_names[:100]
@@ -66,8 +62,8 @@ class TwitterCrawler:
         """
         sent = sent.replace("\n", " ")
         sent = sent.replace("  ", " ")
-        # sent = re.sub(r"http\S+", "", sent) # URL은 활용할 지도 모르므로 우선 제거하지 않도록 주석처리
-        # sent = re.sub(r"https\S+", "", sent)
+        sent = re.sub(r"http\S+", "", sent)
+        sent = re.sub(r"https\S+", "", sent)
         sent = re.sub(r"@\S+", "", sent)
         sent = sent.lstrip()
         sent = sent.rstrip()

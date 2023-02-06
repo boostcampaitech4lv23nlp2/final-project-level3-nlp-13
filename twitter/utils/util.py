@@ -21,7 +21,7 @@ class Chatbot_utils:
 
         sample_outputs = self.model.generate(
             input_ids,
-            num_return_sequences=5,
+            num_return_sequences=1,
             do_sample=True,
             max_length=128,
             top_k=50,
@@ -35,6 +35,10 @@ class Chatbot_utils:
         for sample in sample_outputs:
             decoded_result.append(self.decoding(sample))
 
+        return decoded_result[0] #[0].replace(input_sent, "") 
+
+        '''
         for result in decoded_result:
             print(result.replace("<sep>", ""))  # special token 처리를 해주지 않았기 때문에 후처리 필요
             print()
+        '''

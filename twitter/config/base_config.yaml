@@ -1,0 +1,4 @@
+model:
+  name: nlpotato/kogpt2_chatbot_social_media-e10 #skt/kogpt2-base-v2
+  spam: nlpotato/spam-filtering-bert-base-10e
+  

@@ -1,0 +1,29 @@
+spam:
+  model:
+    name: "klue/bert-base" #"monologg/koelectra-base-v3-discriminator" #"bert-base-multilingual-cased"
+  path:
+    train_path: nlpotato/spam_data_ver2
+    test_path: nlpotato/spam_data_ver2
+    inference_model:  #nlpotato/spam-filtering-bert-base-10e
+  train:
+    max_epoch: 10
+    batch_size: 64 
+    learning_rate: 1e-5
+    loss: ce
+    label_smoothing: 0.1
+    use_frozen: False
+    print_val_cm: True
+    print_test_cm: True
+    optimizer: AdamW
+    scheduler: StepLR
+
+wandb:
+  use: False
+  team: next-level-potato-2 # 팀 계정
+  project: chatbot # 프로젝트 레포 이름
+  name:  # 실험자 명
+  tags: 
+
+hf_hub:
+  push_to_hub: False # whether to push to huggingface hub the pretrained model & tokenizer
+  save_name: # name to register. e.g. roberta-base-new-model

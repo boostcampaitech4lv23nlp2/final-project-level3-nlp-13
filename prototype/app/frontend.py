@@ -62,7 +62,7 @@ def main():
     st.sidebar.subheader("Generation Settings")
     max_len = st.sidebar.slider("max length", 30, 100, value=60)
     top_k = st.sidebar.slider("top k sampling", 10, 50, value=25)
-    top_p = st.sidebar.slider("top p sampling", 0.0, 1.0, step=0.01, value=0.95)
+    top_p = st.sidebar.slider("top p sampling", 0.1, 1.0, step=0.01, value=0.95)
 
     uploaded_file = st.file_uploader("Choose an file", type=["txt"])
 
