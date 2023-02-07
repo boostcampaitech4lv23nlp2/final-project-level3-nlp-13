@@ -39,7 +39,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
                 my_reply = data_pipeline.correct_grammar(retrieved)
             else:
                 # 3-2. 전처리 없이? 생성모델
-                my_reply = generator.get_answer(tweet, 1, 256)
+                my_reply = generator.get_answer(usr_msg, 1, 256)
 
                 # TO-DO: 생성 결과후처리
 
