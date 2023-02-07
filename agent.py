@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     # init modules
     spam_filter = SpamFilter()
-    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="wjlee_nlp")
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="armybot_13")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     elastic_retriever = ElasticRetriever()
     generator = Generator(config)
