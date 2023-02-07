@@ -11,3 +11,4 @@ pip install omegaconf
 pip install python-dotenv
 pip install pyvirtualdisplay
 pip install selenium
+pip install pymongo==4.3.3
