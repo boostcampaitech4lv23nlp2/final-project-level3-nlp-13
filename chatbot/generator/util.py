@@ -1,9 +1,23 @@
+import os
+import random
+
+import numpy as np
 import torch
 from transformers import AutoModelForSeq2SeqLM, GPT2LMHeadModel, PreTrainedTokenizerFast
 
 
 class Generator:
     def __init__(self, config):
+        # seed 설정
+        # SEED = 42
+        # random.seed(SEED)
+        # np.random.seed(SEED)
+        # os.environ["PYTHONHASHSEED"] = str(SEED)
+        # torch.manual_seed(SEED)
+        # torch.cuda.manual_seed(SEED)
+        # torch.cuda.manual_seed_all(SEED)  # if use multi-GPU
+        # torch.backends.cudnn.deterministic = True
+        # torch.backends.cudnn.benchmark = False
         self.config = config
         self.get_model()
 
@@ -25,8 +39,11 @@ class Generator:
         elif "bart" in model_path or "bart".upper() in model_path or "t5" in model_path or "t5".upper() in model_path:
             print("🔥 enc-dec")
             tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
-            model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
-            model.resize_token_embeddings(len(tokenizer))
+            if "pretraining" in model_path:
+                model = AutoModelForSeq2SeqLM.from_pretrained(model_path, from_flax=True)
+            else:
+                model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+                model.resize_token_embeddings(len(tokenizer))
         model.to("cuda")
         self.tokenizer = tokenizer
         self.model = model
@@ -40,7 +57,8 @@ class Generator:
             or "t5" in self.config.model.name_or_path
             or "t5".upper() in self.config.model.name_or_path
         ):
-            text = self.tokenizer.bos_token + text + self.tokenizer.eos_token
+            # text = self.tokenizer.bos_token + text + self.tokenizer.eos_token
+            pass
         return torch.tensor(self.tokenizer.encode(text)).unsqueeze(0).to("cuda")
 
     def decoding(self, ids):

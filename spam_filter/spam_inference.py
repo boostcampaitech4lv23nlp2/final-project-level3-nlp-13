@@ -21,13 +21,14 @@ from transformers import (
     )
     
 def main(config):
-    print("🤬 get model...")
     if config.spam.model.name =="klue/bert-base":
+        print("🤬 get BERT model...")
         tokenizer = AutoTokenizer.from_pretrained(config.spam.path.inference_model)
         model = BertForSequenceClassification.from_pretrained(config.spam.path.inference_model)
     else:
-        tokenizer = ElectraTokenizer.from_pretrained(config.spam.model.name)
-        model = ElectraForSequenceClassification.from_pretrained(config.spam.model.name)
+        print("🤬 get Electra model...")
+        tokenizer = ElectraTokenizer.from_pretrained(config.spam.path.inference_model)
+        model = ElectraForSequenceClassification.from_pretrained(config.spam.path.inference_model)
     def sentences_predict(sent):        
         model.eval()
         tokenized_sent = tokenizer(

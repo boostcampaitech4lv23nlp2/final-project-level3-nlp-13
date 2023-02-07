@@ -77,20 +77,33 @@ class Enc_Dec_Chatbot:
     datasets: Optional[DatasetDict] = None
 
     def __post_init__(self):
-        self.train_dataset = self.datasets.tokenized_datasets["train"]
-        self.test_dataset = self.datasets.tokenized_datasets["test"]
+        try:
+            self.train_dataset = self.datasets.tokenized_datasets["train"]
+            self.test_dataset = self.datasets.tokenized_datasets["test"]
 
-        self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
-        # Trainer 초기화
-        self.trainer = Seq2SeqTrainer(
-            model=self.model,
-            args=self.training_args,
-            train_dataset=self.train_dataset,
-            eval_dataset=self.test_dataset,
-            tokenizer=self.tokenizer,
-            data_collator=self.data_collator,
-            callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
-        )
+            self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
+            # Trainer 초기화
+            self.trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                eval_dataset=self.test_dataset,
+                tokenizer=self.tokenizer,
+                data_collator=self.data_collator,
+                callbacks=[EarlyStoppingCallback(early_stopping_patience=self.config.callbacks.early_stopping_patience)],
+            )
+        except:
+            self.train_dataset = self.datasets.tokenized_datasets["train"]
+
+            self.data_collator = DataCollatorForSeq2Seq(self.tokenizer, self.model, max_length=self.config.tokenizer.max_length)
+            # Trainer 초기화
+            self.trainer = Seq2SeqTrainer(
+                model=self.model,
+                args=self.training_args,
+                train_dataset=self.train_dataset,
+                tokenizer=self.tokenizer,
+                data_collator=self.data_collator,
+            )
 
     def train(self, checkpoint=None):
         train_result = self.trainer.train(resume_from_checkpoint=checkpoint)

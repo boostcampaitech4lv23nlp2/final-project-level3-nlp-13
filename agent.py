@@ -26,29 +26,28 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
         time.sleep(60.0)
     else:
         for tweet in reversed(new_tweets):
-            user_message = tweet.message
+            user_message = tweet.message.lower()
 
-            # 2. 스팸 필터링
+            # 스팸 필터링
             is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
             if is_spam:
                 reply_to_spam = "닥쳐 말포이"
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
             else:
-                # 3-1. 전처리 & 리트리버
-                # usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
-                # print(usr_msg_preprocessed)
+                # 리트리버
                 retrieved = elastic_retriever.return_answer(user_message)
                 if retrieved.query is not None:
                     my_reply = data_pipeline.correct_grammar(retrieved)
                 else:
-                    # 3-2. 전처리 없이? 생성모델
+                    # 생성모델
                     my_reply = generator.get_answer(user_message, 1, 256)
+                    # 후처리
+                    my_reply = data_pipeline.preprocess(my_reply)
 
-                    # TO-DO: 생성 결과후처리
-
-                # 6. twitter로 보내기
+                # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
-            # data_pipeline.log()
+            # saved data
+        # log list
 
     return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)
 
