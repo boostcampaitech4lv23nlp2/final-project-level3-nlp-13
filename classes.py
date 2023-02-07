@@ -12,8 +12,9 @@ class Default:
 @dataclass
 class UserTweet(Default):
     user_id: str
-    screen_name: str
+    user_name: str
     message: str
+    tweet_id: str
 
 
 @dataclass

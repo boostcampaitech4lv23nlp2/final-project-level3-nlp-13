@@ -1,3 +1,4 @@
+import time
 from argparse import ArgumentParser
 from datetime import datetime
 
@@ -20,31 +21,36 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
-    print(new_tweets)
-    for tweet in reversed(new_tweets):
-        print(tweet)
-        usr_msg = tweet.text
+    if len(new_tweets) == 0:
+        # 새 메시지가 없으면
+        time.sleep(60.0)
+    else:
+        for tweet in reversed(new_tweets):
+            user_message = tweet.message
 
-        # 2. 스팸 필터링
-        is_spam = spam_filter.sentences_predict(usr_msg)  # 1이면 스팸, 0이면 아님
-        if is_spam:
-            reply_to_spam = "닥쳐 말포이"
-            twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
-        else:
-            # 3-1. 전처리 & 리트리버
-            # usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
-            # print(usr_msg_preprocessed)
-            retrieved = elastic_retriever.return_answer(usr_msg)
-            if retrieved.query is not None:
-                my_reply = data_pipeline.correct_grammar(retrieved)
+            # 2. 스팸 필터링
+            is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
+            if is_spam:
+                reply_to_spam = "닥쳐 말포이"
+                twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
             else:
-                # 3-2. 전처리 없이? 생성모델
-                my_reply = generator.get_answer(usr_msg, 1, 256)
+                # 3-1. 전처리 & 리트리버
+                # usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
+                # print(usr_msg_preprocessed)
+                retrieved = elastic_retriever.return_answer(user_message)
+                if retrieved.query is not None:
+                    my_reply = data_pipeline.correct_grammar(retrieved)
+                else:
+                    # 3-2. 전처리 없이? 생성모델
+                    my_reply = generator.get_answer(user_message, 1, 256)
 
-                # TO-DO: 생성 결과후처리
+                    # TO-DO: 생성 결과후처리
 
-            # 6. twitter로 보내기
-            twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
+                # 6. twitter로 보내기
+                twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
+            # data_pipeline.log()
+
+    return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)
 
 
 if __name__ == "__main__":
@@ -59,7 +65,7 @@ if __name__ == "__main__":
 
     # init modules
     spam_filter = SpamFilter()
-    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp")
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="wjlee_nlp")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     elastic_retriever = ElasticRetriever()
     generator = Generator(config)
