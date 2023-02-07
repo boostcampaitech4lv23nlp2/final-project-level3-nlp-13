@@ -1,7 +1,7 @@
 # BTS를 덕질하는 트위터 챗봇, ArmyBot 
 
 ## 1️⃣ Introduction
-<img src="https://user-images.githubusercontent.com/65378914/217187454-b8159fff-7152-4125-9a18-2c0ccf236aeb.png"  width="700" height="180"/>
+<img src="https://user-images.githubusercontent.com/65378914/217187454-b8159fff-7152-4125-9a18-2c0ccf236aeb.png"  width="500" height="100"/>
 같이 덕질하자! ArmyBot은 흔한 아미 트친(BTS을 응원하는 트위터 친구)처럼 이런 저런 이야기를 나눌 수 있는 챗봇 서비스입니다. BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https://twitter.com/armybot_13)으로 트윗만 보내면 ArmyBot이 답장을 합니다.
 
 ## 2️⃣ 팀원 소개
