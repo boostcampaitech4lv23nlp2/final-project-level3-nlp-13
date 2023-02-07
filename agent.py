@@ -6,17 +6,18 @@ from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
 from twitter.tweet_pipeline import TwitterPipeline
-from classes import UserTweet
+from classes import UserTweet, BotReply
 from omegaconf import OmegaConf
 from pytz import timezone
 from spam_filter.spam_filter import SpamFilter
+from database.mongodb import MongoDB
 
 # fmt: off
 special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해" ] #TO-Do
 # fmt: on
 
 
-def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator):
+def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
@@ -26,12 +27,13 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
         time.sleep(60.0)
     else:
         for tweet in reversed(new_tweets):
+            time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
             user_message = tweet.message.lower()
 
             # 스팸 필터링
             is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
             if is_spam:
-                reply_to_spam = "닥쳐 말포이"
+                my_reply = reply_to_spam = "...."
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
             else:
                 # 리트리버
@@ -46,10 +48,12 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
                 # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
-            # saved data
-        # log list
 
-    return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)
+                # logging
+            score = retrieved.bm25_score if not is_spam else 0
+            db.insert_one(BotReply(tweet=tweet, reply=my_reply, score=score,is_spam=is_spam, time=time_log,).__dict__())
+
+    return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db)
 
 
 if __name__ == "__main__":
@@ -68,5 +72,6 @@ if __name__ == "__main__":
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     elastic_retriever = ElasticRetriever()
     generator = Generator(config)
+    db = MongoDB()
 
-    main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)
+    main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db)
