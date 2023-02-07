@@ -40,18 +40,26 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
                 retrieved = elastic_retriever.return_answer(user_message)
                 if retrieved.query is not None:
                     my_reply = data_pipeline.correct_grammar(retrieved)
+                    score = retrieved.bm25_score
                 else:
                     # 생성모델
                     my_reply = generator.get_answer(user_message, 1, 256)
                     # 후처리
                     my_reply = data_pipeline.postprocess(my_reply, tweet.user_screen_name)
-
+                    score = 0.
                 # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
 
-                # logging
-            score = retrieved.bm25_score if not is_spam else 0
-            db.insert_one(BotReply(tweet=tweet, reply=my_reply, score=score,is_spam=is_spam, time=time_log,).__dict__())
+            # logging
+            record = BotReply(
+                tweet=tweet,
+                reply=my_reply,
+                score=score,
+                is_spam=bool(is_spam),
+                time=time_log,
+            ).__dict__
+            print(record)
+            db.insert_one(record)
 
     return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db)
 

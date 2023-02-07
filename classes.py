@@ -30,5 +30,5 @@ class BotReply(Default):
     reply: str
     score: float
     time: str
-    is_spam: str
+    is_spam: bool
     time: str

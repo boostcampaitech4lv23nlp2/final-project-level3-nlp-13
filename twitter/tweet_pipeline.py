@@ -60,7 +60,10 @@ class TwitterPipeline:
         return new_tweets
 
     def reply_tweet(self, tweet, reply):
-        self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
+        try:
+            self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
+        except:
+            print("Error occured when sending a reply")
 
     def retrieve_last_since_id(self):
         """마지막으로 확인한 id를 반환"""
