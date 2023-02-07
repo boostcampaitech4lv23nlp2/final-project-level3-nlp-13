@@ -16,15 +16,21 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 # fmt: on
 
 
-def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator):
+def main(spam_filter, twitter_pipeline, data_pipeline, generator):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
-    if len(new_tweets) == 0:
+    if len(new_tweets) == 0:  
         # 새 메시지가 없으면
+        print('글 좋아요 테스트1')
+        twitter_pipeline.like_tweet(new_tweets)
+        #twitter_pipeline.create_tweet(text='@endlessrain_dev, 입닥쳐말포이')
         time.sleep(60.0)
     else:
+        print('글 좋아요 테스트2')
+        twitter_pipeline.like_tweet(new_tweets)
+        #twitter_pipeline.create_tweet(text='@endlessrain_dev, 입닥쳐말포이')
         for tweet in reversed(new_tweets):
             user_message = tweet.message.lower()
 
@@ -64,9 +70,9 @@ if __name__ == "__main__":
 
     # init modules
     spam_filter = SpamFilter()
-    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="wjlee_nlp")
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="endlessrain_dev")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-    elastic_retriever = ElasticRetriever()
+    #elastic_retriever = ElasticRetriever()
     generator = Generator(config)
 
-    main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)
+    main(spam_filter, twitter_pipeline, data_pipeline, generator)

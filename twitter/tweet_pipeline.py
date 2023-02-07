@@ -61,6 +61,12 @@ class TwitterPipeline:
     def reply_tweet(self, tweet, reply):
         self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
 
+    def create_tweet(self, text):
+        self.client.create_tweet(text='@endlessrain_dev 입닥쳐 말포이')
+
+    def like_tweet(self, tweet):
+        self.client.like(tweet.tweet_id)
+
     def retrieve_last_since_id(self):
         """마지막으로 확인한 id를 반환"""
         with open(self.FILE_NAME, "r") as f:
