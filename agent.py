@@ -5,11 +5,11 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import UserTweet
+from twitter.tweet_pipeline import TwitterPipeline
+from classes import UserTweet, BotReply
 from omegaconf import OmegaConf
 from pytz import timezone
 from spam_filter.spam_filter import SpamFilter
-from twitter.data_pipeline import TwitterPipeline, TwitterupdatePipeline
 from database.mongodb import MongoDB
 
 # fmt: off
@@ -17,55 +17,51 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 # fmt: on
 
 
-def main(config, db):
+def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
-    time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
 
-    try:
-        # 1. twitter api에서 메시지 불러오기
-        last_seen_id, user_name, tweet = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@armybot_13").reply_to_tweets()
-        tweet = tweet.lower()
-        tweet = tweet.replace("armybot_13","").strip()
-        bm25_score = None
+    # 1. twitter api에서 메시지 불러오기
+    new_tweets = twitter_pipeline.get_mentions()
+    if len(new_tweets) == 0:
+        # 새 메시지가 없으면
+        time.sleep(60.0)
+    else:
+        for tweet in reversed(new_tweets):
+            time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
+            user_message = tweet.message.lower()
 
-        # 2. 스팸 필터링
-        is_spam = SpamFilter().sentences_predict(tweet)  # 1이면 스팸, 0이면 아님
-
-        if is_spam:
-            TwitterupdatePipeline(username=user_name, output_text="글쎄...", last_seen_id=last_seen_id).update()
-            db.insert_one({"screen_name": user_name, "message": tweet, "reply": "spam", "bm25_score": bm25_score, "time": time_log})
-
-        else:
-            # 3-1. 전처리 & 리트리버
-            data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-            elastic_retriever = ElasticRetriever()
-            retrieved = elastic_retriever.return_answer(tweet)
-
-            if retrieved.query is not None:
-                my_answer = data_pipeline.correct_grammar(retrieved)
-                bm25_score = retrieved.bm25_score
+            # 스팸 필터링
+            is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
+            if is_spam:
+                my_reply = reply_to_spam = "...."
+                twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
             else:
-                # 3-2. 전처리 없이? 생성모델
-                generator = Generator(config)
-                my_answer = generator.get_answer(tweet, 1, 256)
+                # 리트리버
+                retrieved = elastic_retriever.return_answer(user_message)
+                if retrieved.query is not None:
+                    my_reply = data_pipeline.correct_grammar(retrieved)
+                    score = retrieved.bm25_score
+                else:
+                    # 생성모델
+                    my_reply = generator.get_answer(user_message, 1, 256)
+                    # 후처리
+                    my_reply = data_pipeline.postprocess(my_reply, tweet.user_screen_name)
+                    score = 0.0
+                # twitter로 보내기
+                twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
 
-                if "<account>" in my_answer:
-                    my_answer = my_answer.replace("<account>", user_name)
+            # logging
+            record = BotReply(
+                tweet=tweet,
+                reply=my_reply,
+                score=score,
+                is_spam=bool(is_spam),
+                time=time_log,
+            ).__dict__
+            print(record)
+            db.insert_one(record)
 
-            # 6. twitter로 보내기
-
-            TwitterupdatePipeline(username=user_name, output_text=my_answer, last_seen_id=last_seen_id).update()
-
-        # log: user message + screen name + bot answer
-        data_pipeline.log(
-            new_entries=[UserTweet(screen_name=user_name, message=tweet, reply=my_answer)],
-            save_name=today,
-        )
-
-        db.insert_one({"screen_name": user_name, "message": tweet, "reply": my_answer, "bm25_score": bm25_score, "time": time_log})
-
-    except Exception as e:
-        print(e)
+    return main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db)
 
 
 if __name__ == "__main__":
@@ -78,12 +74,12 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args()
     config = OmegaConf.load(f"./config/{args.config}.yaml")
 
-    # TO-DO: 각 submodule init은 여기서 하고 instances를 main안에 넣어주기
-    print("Agent is running...")
-
-    print("Initiating MongoDB...")
+    # init modules
+    spam_filter = SpamFilter()
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="armybot_13")
+    data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
+    elastic_retriever = ElasticRetriever()
+    generator = Generator(config)
     db = MongoDB()
 
-    while True:
-        main(config, db)
-        time.sleep(30)
+    main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db)
