@@ -67,16 +67,13 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 if __name__ == "__main__":
 
     parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
-    parser.add_argument("--datasets", type=str, nargs="+")
-    parser.add_argument("--query", type=str)
     parser.add_argument("--config", "-c", type=str, default="base_config")
-
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./config/{args.config}.yaml")
+    config = OmegaConf.load(f"./utils/{args.config}.yaml")
 
     # init modules
     spam_filter = SpamFilter()
-    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="armybot_13")
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="wjlee_nlp")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     elastic_retriever = ElasticRetriever()
     generator = Generator(config)
