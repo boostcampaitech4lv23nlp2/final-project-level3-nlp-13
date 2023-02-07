@@ -5,7 +5,7 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import BotReply, UserTweet
+from utils.classes import BotReply, UserTweet
 from database.mongodb import MongoDB
 from omegaconf import OmegaConf
 from pytz import timezone

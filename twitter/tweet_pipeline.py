@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from collections import namedtuple
-from classes import UserTweet
+from utils.classes import UserTweet
 from pathlib import Path
 
 import tweepy

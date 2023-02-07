@@ -14,7 +14,7 @@ from omegaconf import OmegaConf
 
 path = "/".join(str(Path(__file__)).split("/")[:-1])
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
-from classes import RetrieverOutput
+from utils.classes import RetrieverOutput
 
 warnings.filterwarnings("ignore")
 
