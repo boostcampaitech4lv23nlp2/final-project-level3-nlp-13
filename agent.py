@@ -20,10 +20,11 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
-
+    print(new_tweets)
     for tweet in reversed(new_tweets):
+        print(tweet)
         usr_msg = tweet.text
-        
+
         # 2. 스팸 필터링
         is_spam = spam_filter.sentences_predict(usr_msg)  # 1이면 스팸, 0이면 아님
         if is_spam:
@@ -31,9 +32,9 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
             twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
         else:
             # 3-1. 전처리 & 리트리버
-            usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
-            print(usr_msg_preprocessed)
-            retrieved = elastic_retriever.return_answer(usr_msg_preprocessed)
+            # usr_msg_preprocessed = data_pipeline.preprocess(usr_msg)
+            # print(usr_msg_preprocessed)
+            retrieved = elastic_retriever.return_answer(usr_msg)
             if retrieved.query is not None:
                 my_reply = data_pipeline.correct_grammar(retrieved)
             else:
@@ -58,12 +59,9 @@ if __name__ == "__main__":
 
     # init modules
     spam_filter = SpamFilter()
-    twitter_pipeline = TwitterPipeline(
-        FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp"
-    )
+    twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", username="@wjlee_nlp")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
     elastic_retriever = ElasticRetriever()
     generator = Generator(config)
-    
 
     main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator)

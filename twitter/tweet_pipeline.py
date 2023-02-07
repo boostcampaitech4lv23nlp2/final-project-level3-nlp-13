@@ -26,10 +26,9 @@ class TwitterPipeline:
 
     def get_mentions(self):
         new_tweets = []
-        for tweet in tweepy.Cursor(
-            self.api.mentions_timeline, since_id=self.since_id
-        ).items():
-            if tweet.id <= self.since_id or self.username in tweet.text.lower():
+        for tweet in tweepy.Cursor(self.api.mentions_timeline, count=5, since_id=self.since_id).items():
+            print(tweet)
+            if tweet.id <= self.since_id:
                 continue
             self.since_id = tweet.id
             new_tweets.append(tweet)
@@ -60,9 +59,7 @@ class TwitterPipeline:
             self.store_last_seen_id(last_seen_id, self.FILE_NAME)
 
             if self.username in mention.full_text.lower():
-                input_text = mention.full_text.replace(
-                    str(mention.user.screen_name), ""
-                ).replace("@", "")
+                input_text = mention.full_text.replace(str(mention.user.screen_name), "").replace("@", "")
                 print(input_text)
                 return last_seen_id, str(mention.user.screen_name), input_text
 
@@ -77,6 +74,4 @@ class TwitterupdatePipeline:
         self.api = tweepy.API(auth, wait_on_rate_limit=True)
 
     def update(self):
-        new_status = self.api.update_status(
-            "@" + self.username + " " + self.output_text, self.last_seen_id
-        )
+        new_status = self.api.update_status("@" + self.username + " " + self.output_text, self.last_seen_id)
