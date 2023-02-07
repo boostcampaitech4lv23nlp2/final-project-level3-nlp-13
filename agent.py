@@ -19,7 +19,6 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 
 def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
-    time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
 
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
