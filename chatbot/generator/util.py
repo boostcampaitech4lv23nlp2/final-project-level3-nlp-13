@@ -24,7 +24,6 @@ class Generator:
     def get_model(self):
         model_path: str = self.config.model.name_or_path
         if "gpt" in model_path:
-            print("🔥 gpt")
             tokenizer = PreTrainedTokenizerFast.from_pretrained(
                 model_path,
                 bos_token="</s>",
@@ -37,7 +36,6 @@ class Generator:
             model = GPT2LMHeadModel.from_pretrained(model_path)
             model.resize_token_embeddings(len(tokenizer))
         elif "bart" in model_path or "bart".upper() in model_path or "t5" in model_path or "t5".upper() in model_path:
-            print("🔥 enc-dec")
             tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
             if "pretraining" in model_path:
                 model = AutoModelForSeq2SeqLM.from_pretrained(model_path, from_flax=True)
