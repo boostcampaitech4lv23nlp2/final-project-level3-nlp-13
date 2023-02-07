@@ -18,6 +18,7 @@ auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
 auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
 User = namedtuple("User", "user_name user_screen_name")
 
+
 @dataclass
 class TwitterPipeline:
     FILE_NAME: str
@@ -39,7 +40,7 @@ class TwitterPipeline:
     def get_mentions(self):
         new_tweets = []
         mentions = self.client.get_users_mentions(id=self.bot_user_id, since_id=self.since_id, expansions=["author_id", "referenced_tweets.id"])
-        
+
         if mentions["meta"]["result_count"] == 0:
             print("🔺 No new mentions")
         else:
@@ -48,12 +49,14 @@ class TwitterPipeline:
             for data in mentions["data"]:
                 message = data["text"].replace(f"@{self.bot_username}", "").strip()
                 user = users[data["author_id"]]
-                
+
                 if data["author_id"] == self.bot_user_id:
                     # 우리 chatbot이 쓴 글이
                     continue
 
-                tweet = UserTweet(user_id=data["author_id"], tweet_id=data["id"], message=message, user_name=user.user_name, user_screen_name=user.user_screen_name)
+                tweet = UserTweet(
+                    user_id=data["author_id"], tweet_id=data["id"], message=message, user_name=user.user_name, user_screen_name=user.user_screen_name
+                )
                 new_tweets.append(tweet)
             self.since_id = mentions["meta"]["newest_id"]
             self.store_new_since_id(self.since_id)

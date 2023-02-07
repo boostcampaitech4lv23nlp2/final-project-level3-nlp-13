@@ -24,6 +24,7 @@ class RetrieverOutput(Default):
     bm25_score: typing.Optional[float] = None
     db_name: typing.Optional[str] = None
 
+
 @dataclass
 class BotReply(Default):
     tweet: UserTweet
