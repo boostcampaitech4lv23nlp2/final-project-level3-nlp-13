@@ -3,8 +3,9 @@ import json
 import os
 import random
 import re
-import warnings
 import sys
+import warnings
+
 import pandas as pd
 from datasets import load_dataset
 from elasticsearch import Elasticsearch, helpers
@@ -13,23 +14,22 @@ from omegaconf import OmegaConf
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
 from classes import RetrieverOutput
 
-
 warnings.filterwarnings("ignore")
 
 # 데이터 format : {"id": 0, "intent": "질문.생일", "question": "{멤버} 언제 태어났어?", "answer": "{멤버} 생일은 {생일}이야!"}
 def make_db_data():
     # read csv file
-    data = pd.read_csv("./chatbot/retriever/template.csv")
+    data = pd.read_csv("../chatbot/retriever/template.csv")
     intent = data["intent"]
     question = data["Q"]
     answer = data["A"]
 
     db_data = [{"id": i, "intent": it, "question": q, "answer": a} for i, (it, q, a) in enumerate(zip(intent, question, answer))]
     # save data to json file
-    if not os.path.exists("./chatbot/retriever/data"):
-        os.makedirs("./chatbot/retriever/data")
+    if not os.path.exists("../chatbot/retriever/data"):
+        os.makedirs("../chatbot/retriever/data")
 
-    with open("./chatbot/retriever/data/answer_template.json", "w", encoding="utf-8") as f:
+    with open("../chatbot/retriever/data/answer_template.json", "w", encoding="utf-8") as f:
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
 
@@ -40,7 +40,7 @@ class ElasticRetriever:
         self.es = Elasticsearch("http://localhost:9200")
 
         # make index
-        with open("./chatbot/retriever/setting.json", "r") as f:
+        with open("../chatbot/retriever/setting.json", "r") as f:
             setting = json.load(f)
 
         self.index_name = "chatbot"
@@ -49,9 +49,9 @@ class ElasticRetriever:
         self.es.indices.create(index=self.index_name, body=setting)
 
         # load data
-        if not os.path.exists("./chatbot/retriever/data/answer_template.json"):
+        if not os.path.exists("../chatbot/retriever/data/answer_template.json"):
             make_db_data()
-        self.db_data = pd.read_json("./chatbot/retriever/data/answer_template.json")
+        self.db_data = pd.read_json("../chatbot/retriever/data/answer_template.json")
 
         # insert data
         helpers.bulk(self.es, self._get_doc(self.index_name))
@@ -97,12 +97,12 @@ class ElasticRetriever:
             for member in member_list:
                 if member in query:
                     query = re.sub(member, "{멤버}", query)
-                    query = re.sub("데{멤버}년도", "데뷔년도", query) 
+                    query = re.sub("데{멤버}년도", "데뷔년도", query)
                     return {"db_name": db_name, "call_name": member, "query": query}
         return {"db_name": None, "call_name": None, "query": query}
 
     def find_intent(self, query):
-        intent_json = json.load(open("./chatbot/retriever/data/intent_keyword.json", "r", encoding="utf-8"))
+        intent_json = json.load(open("../chatbot/retriever/data/intent_keyword.json", "r", encoding="utf-8"))
 
         for intent, keywords in intent_json.items():
             keywords_list = keywords["words"].split(",")
@@ -130,7 +130,7 @@ class ElasticRetriever:
         slots = re.findall(r"\{.*?\}", answer_template)
 
         # slot에 해당하는 정보 db.json으로부터 fill
-        db_json = json.load(open("./chatbot/retriever/data/db.json", "r", encoding="utf-8"))
+        db_json = json.load(open("../chatbot/retriever/data/db.json", "r", encoding="utf-8"))
 
         for slot in slots:
             # 멤버 관련 질문인 경우
@@ -167,8 +167,8 @@ class ElasticRetriever:
         # 1. 입력 query에서 member slot 추출 및 치환 : {멤버} -> 정국
         outputs = self.find_member(query)
         member_replaced_query = outputs["query"]
-        call_name = outputs["call_name"] # 없으면 None
-        db_name = outputs["db_name"] # 없으면 None
+        call_name = outputs["call_name"]  # 없으면 None
+        db_name = outputs["db_name"]  # 없으면 None
 
         # 2. 입력 query에서 intent 키워드 매칭
         outputs = self.find_intent(member_replaced_query)
@@ -202,7 +202,6 @@ class ElasticRetriever:
             # => generation 모델에 전달
             else:
                 return RetrieverOutput(query=None, bm25_score=None, db_name=None)
-
 
 
 if __name__ == "__main__":
