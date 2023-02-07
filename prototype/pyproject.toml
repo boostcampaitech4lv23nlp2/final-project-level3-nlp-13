@@ -21,6 +21,11 @@ python-multipart = "^0.0.5"
 streamlit = "^1.17.0"
 streamlit-chat = "^0.0.2.1"
 omegaconf = "^2.3.0"
+kiwipiepy = "^0.14.1"
+datasets = "^2.9.0"
+elasticsearch = "^8.6.1"
+tweepy = "^4.12.1"
+python-dotenv = "^0.21.1"
 
 
 [build-system]
