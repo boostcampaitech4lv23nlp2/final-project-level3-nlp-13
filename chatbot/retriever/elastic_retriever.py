@@ -192,7 +192,7 @@ class ElasticRetriever:
         # 4.2 입력 query에 intent가 없는 경우
         else:
             # Elastic Search output에서 intent가 chitchat인 경우
-            if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 6:
+            if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 8:
                 candidate_answer_templates = top3_outputs["answers"][0].split(",")
                 # 랜덤하게 answer template 선택
                 answer_template = random.choice(candidate_answer_templates)
