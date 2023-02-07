@@ -9,13 +9,19 @@
 주어진 키워드에 관한 네이버 연예뉴스, 일반뉴스를 수집합니다. 네이버가 1차적으로 토픽별로 클러스터링한 기사들 중 대표 기사들만 수집합니다.
 
 ### 크롤링
-`python build_corpus.py -c naver -q {키워드} -n {수집량} --do_crawl`
+```
+python build_corpus.py -c naver -q {키워드} -n {수집량} --do_crawl
+```
 
 ### 전처리
-`python build_corpus.py -c naver -p {전처리할 파일이나 폴더} --do_preprocess`
+```
+python build_corpus.py -c naver -p {전처리할 파일이나 폴더} --do_preprocess
+```
 
 ## Naver 지식인(kin)
 주어진 키워드에 관한 네이버 지식인 문답을 수집합니다. 네이버 검색 API ID와 비밀번호가 있어야 수집이 가능하며, ID와 비밀번호는 .env 파일에 저장되어 있어야 합니다.
 
 ### 크롤링
-`python build_corpus.py -c kin -q {키워드} -n {수집량} --do_crawl`
+```
+python build_corpus.py -c kin -q {키워드} -n {수집량} --do_crawl
+```
