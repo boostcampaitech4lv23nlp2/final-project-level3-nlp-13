@@ -37,7 +37,8 @@ class TwitterPipeline:
         return new_tweets
 
     def reply_tweet(self, tweet, reply):
-
+        reply = f"@{tweet.user.screen_name}" + reply
+        print(reply)
         self.api.update_status(status=reply, in_reply_to_status_id=tweet.id)
 
     def retrieve_last_since_id(self):
