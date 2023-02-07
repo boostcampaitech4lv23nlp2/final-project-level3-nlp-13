@@ -35,3 +35,11 @@ python build_corpus.py -c naver -p {전처리할 파일이나 폴더} --do_prepr
 ```
 python build_corpus.py -c kin -q {키워드} -n {수집량} --do_crawl
 ```
+
+## 더쿠
+주어진 키워드에 관한 더쿠 hot게시판, 방탄 게시판 ~
+
+#### 크롤링
+```
+python build_corpus.py -c
+```
