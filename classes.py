@@ -13,6 +13,7 @@ class Default:
 class UserTweet(Default):
     user_id: str
     user_name: str
+    user_screen_name: str
     message: str
     tweet_id: str
 

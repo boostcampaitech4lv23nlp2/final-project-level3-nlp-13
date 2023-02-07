@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from collections import namedtuple
 from classes import UserTweet
 from pathlib import Path
 
@@ -15,7 +16,7 @@ TWITTER_ACCESS_SECRET_TOKEN = os.environ.get("TWITTER_ACCESS_SECRET_TOKEN")
 TWITTER_BEARER_TOKEN = os.environ.get("TWITTER_BEARER_TOKEN")
 auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
 auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
-
+User = namedtuple("User", "user_name user_screen_name")
 
 @dataclass
 class TwitterPipeline:
@@ -41,15 +42,17 @@ class TwitterPipeline:
         if mentions["meta"]["result_count"] == 0:
             print("🔺 No new mentions")
         else:
-            for idx in range(len(mentions["data"])):
-                data = mentions["data"][idx]
-                user = mentions["includes"]["users"][idx]
+            users = mentions["includes"]["users"]
+            users = {user["id"]: User(user_name=user["username"], user_screen_name=user["name"]) for user in users}
+            for data in mentions["data"]:
                 message = data["text"].replace(f"@{self.bot_username}", "").strip()
-                if user["id"] == self.bot_user_id:
+                user = users[data["author_id"]]
+                
+                if data["author_id"] == self.bot_user_id:
                     # 우리 chatbot이 쓴 글이
                     continue
 
-                tweet = UserTweet(user_id=user["id"], tweet_id=data["id"], message=message, user_name=user["username"])
+                tweet = UserTweet(user_id=data["author_id"], tweet_id=data["id"], message=message, user_name=user.user_name, user_screen_name=user.user_screen_name)
                 new_tweets.append(tweet)
             self.since_id = mentions["meta"]["newest_id"]
             self.store_new_since_id(self.since_id)

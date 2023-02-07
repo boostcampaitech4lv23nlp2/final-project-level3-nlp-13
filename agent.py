@@ -42,7 +42,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
                     # 생성모델
                     my_reply = generator.get_answer(user_message, 1, 256)
                     # 후처리
-                    my_reply = data_pipeline.preprocess(my_reply)
+                    my_reply = data_pipeline.postprocess(my_reply, tweet.user_screen_name)
 
                 # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
