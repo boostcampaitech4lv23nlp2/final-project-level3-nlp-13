@@ -39,6 +39,7 @@ class TwitterPipeline:
     def get_mentions(self):
         new_tweets = []
         mentions = self.client.get_users_mentions(id=self.bot_user_id, since_id=self.since_id, expansions=["author_id", "referenced_tweets.id"])
+
         if mentions["meta"]["result_count"] == 0:
             print("🔺 No new mentions")
         else:

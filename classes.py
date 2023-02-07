@@ -23,3 +23,13 @@ class RetrieverOutput(Default):
     query: typing.Optional[str] = None
     bm25_score: typing.Optional[float] = None
     db_name: typing.Optional[str] = None
+
+
+@dataclass
+class BotReply(Default):
+    tweet: UserTweet
+    reply: str
+    score: float
+    time: str
+    is_spam: bool
+    time: str
