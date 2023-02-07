@@ -192,13 +192,16 @@ class ElasticRetriever:
         # 4.2 입력 query에 intent가 없는 경우
         else:
             # Elastic Search output에서 intent가 chitchat인 경우
-            if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 8:
-                candidate_answer_templates = top3_outputs["answers"][0].split(",")
-                # 랜덤하게 answer template 선택
-                answer_template = random.choice(candidate_answer_templates)
-                # answer_template의 slot에 db 정보 채우기
-                filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
-                return RetrieverOutput(query=filled_answer_template, bm25_score=top3_outputs["scores"][0], db_name=None)
+            if len(top3_outputs["scores"]) > 0:
+                if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 8:
+                    candidate_answer_templates = top3_outputs["answers"][0].split(",")
+                    # 랜덤하게 answer template 선택
+                    answer_template = random.choice(candidate_answer_templates)
+                    # answer_template의 slot에 db 정보 채우기
+                    filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
+                    return RetrieverOutput(query=filled_answer_template, bm25_score=top3_outputs["scores"][0], db_name=None)
+                else:
+                    return RetrieverOutput(query=None, bm25_score=None, db_name=None)
             # => generation 모델에 전달
             else:
                 return RetrieverOutput(query=None, bm25_score=None, db_name=None)
