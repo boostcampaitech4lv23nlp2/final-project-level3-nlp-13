@@ -1,8 +1,4 @@
-# CORPUS
-
 데이터를 수집, 전처리하여 코퍼스를 구축하는 서브모듈. 수집 및 전처리는 build_corpus.py로 실행할 수 있습니다.
-
-## Prerequisites
 .env.template 파일을 복사해 twitter, Naver API 로그인 정보를 입력 후 .env 파일로 저장해야 합니다.
 
 ## Twitter 
