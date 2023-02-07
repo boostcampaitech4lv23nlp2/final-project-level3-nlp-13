@@ -12,7 +12,9 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import UserTweet
+from classes import BotReply, UserTweet
+
+# from database.mongodb import MongoDB
 from omegaconf import OmegaConf
 from pytz import timezone
 from spam_filter.spam_filter import SpamFilter
@@ -37,38 +39,47 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 # fmt: on
 
 today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
+spam_filter = SpamFilter()
+data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
+elastic_retriever = ElasticRetriever()
 generator = Generator(config)
+# db = MongoDB()
 
 
 @app.post("/input", description="주문을 요청합니다")
 async def make_chat(data: User_input):
-    text = data.dict()["sentence"]
+    time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
+    user_message = data.dict()["sentence"].lower()
     max_len = data.dict()["max_len"]
     top_k = data.dict()["top_k"]
     top_p = data.dict()["top_p"]
 
-    is_spam = SpamFilter().sentences_predict(text)  # 1이면 스팸, 0이면 아님
+    # 스팸 필터링
+    is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
     if is_spam:
-        return "글쎄..."
+        return "...."
     else:
-        # 3-1. 전처리 & 리트리버
-        data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-        elastic_retriever = ElasticRetriever()
-        retrieved = elastic_retriever.return_answer(text)
-
+        # 리트리버
+        retrieved = elastic_retriever.return_answer(user_message)
         if retrieved.query is not None:
-            my_answer = data_pipeline.correct_grammar(retrieved)
+            my_reply = data_pipeline.correct_grammar(retrieved)
+            score = retrieved.bm25_score
         else:
-            # 3-2. 전처리 없이? 생성모델
-            my_answer = generator.get_answer(text, 1, max_len, top_k, top_p)
+            # 생성모델
+            my_reply = generator.get_answer(user_message, 1, max_len, top_k, top_p)
+            # 후처리
+            my_reply = data_pipeline.postprocess(my_reply, "유저")
+            score = 0.0
 
-            if "<account>" in my_answer:
-                my_answer = my_answer.replace("<account>", "유저")
+    # logging
+    record = BotReply(
+        tweet=user_message,
+        reply=my_reply,
+        score=score,
+        is_spam=bool(is_spam),
+        time=time_log,
+    ).__dict__
+    print(record)
+    # db.insert_one(record)
 
-    # log: user message + screen name + bot answer
-    data_pipeline.log(
-        new_entries=[UserTweet(screen_name="익명의 유저", message=text, reply=my_answer)],
-        save_name=today,
-    )
-
-    return my_answer
+    return my_reply
