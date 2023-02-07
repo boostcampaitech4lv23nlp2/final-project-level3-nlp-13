@@ -2,9 +2,10 @@
 
 ## 1️⃣ Introduction
 같이 덕질하자! ArmyBot은 흔한 아미 트친(BTS을 응원하는 트위터 친구)처럼 이런 저런 이야기를 나눌 수 있는 챗봇 서비스입니다. BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https://twitter.com/armybot_13)으로 트윗만 보내면 ArmyBot이 답장을 합니다.
-
+![armybot](https://user-images.githubusercontent.com/65378914/217187454-b8159fff-7152-4125-9a18-2c0ccf236aeb.png)
 
 ## 2️⃣ 팀원 소개
+
 김별희|이원재|이정아|임성근|정준녕|
 :-:|:-:|:-:|:-:|:-:
 <img src='https://avatars.githubusercontent.com/u/42535803?v=4' height=80 width=80px></img>|<img src='https://avatars.githubusercontent.com/u/61496071?v=4' height=80 width=80px></img>|<img src='https://avatars.githubusercontent.com/u/65378914?v=4' height=80 width=80px></img>|<img src='https://avatars.githubusercontent.com/u/14817039?v=4' height=80 width=80px></img>|<img src='https://avatars.githubusercontent.com/u/51015187?v=4' height=80 width=80px></img>
@@ -22,7 +23,9 @@
 ![service example](https://im.ezgif.com/tmp/ezgif-1-a031a0f781.gif)
 
 ## 4️⃣ Service Architecture
-### 1) Project Tree
+![model](https://user-images.githubusercontent.com/65378914/217187792-2f0c2f93-d389-46d9-b361-d8ac7e4434c6.png)
+### Project Tree
+
 ```
 .
 |-- chatbot
@@ -77,20 +80,53 @@
     |-- push_model_to_hub.py
     `-- util.py
 ```
-### 2) System Architecture
 
 ## 5️⃣ DataSet
-### 1. 데이터 수집
-### 2. 데이터 전처리
 
+![dataset](https://user-images.githubusercontent.com/65378914/217187965-e6cf8c16-38af-4392-bdd0-63bcb6f362fb.png)
+- [AI Hub 연예뉴스](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=625) : 3,144개 10.67MB
+- 네이버 뉴스 BTS 관련 기사 : 1,337개 4.85MB
+- [일상 대화 및 위로 문답 챗봇 데이터](https://github.com/songys/Chatbot_data) : 962,681개 108.43MB
+- BTS 관련 네이버 지식인 : 7,785개 8.70MB
+- 더쿠 BTS 카테고리 글/댓글 : 13,709개 3.53MB
+- 트위터 BTS 팬 트윗/답글 : 8,106개 1.45MB
+- [Korean-hate-speech](https://github.com/kocohub/korean-hate-speech) : 7,896개
+- [KOLD](https://github.com/boychaboy/KOLD) : 40,429개
+- [Korean_unsmile_data](https://github.com/smilegate-ai/korean_unsmile_dataset) : 7,896개
+- [Curse-detection-data](https://github.com/2runo/Curse-detection-data) : 6,154개
 
 ## 6️⃣ Modeling
 
 ## 7️⃣ How to Run
+### Clone Repo & Install dependency
+
+```python
+$ git clone https://github.com/boostcampaitech4lv23nlp2/final-project-level3-nlp-13.git
+$ cd final-project-level3-nlp-13
+$ poetry install
 ```
-python agent.py
+
+### Set up Elastic Search
+
+```python
+$ bash install_elastic_search.sh
+```
+
+### Run
+
+```python
+$ python agent.py
 ```
 ## 8️⃣  Future Works
 - 생성모델 성능 개선
+- FastText를 이용해 임베딩
 - Salient Span Masking을 도입한 사전학습
 - 답장 외 챗봇의 글 생성 기능 및 이벤트 기능 추가
+
+## 9️⃣ Development Environment
+
+- 협업툴 : Notion, Slack, Huggingface, Wandb
+- 개발 환경
+    - GPU: V100
+    - 언어: Python==3.8.5
+    - dependency: PyTorch == 1.13.1
