@@ -4,10 +4,10 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
+from twitter.tweet_pipeline import TwitterPipeline
 from utils.classes import BotReply, UserTweet
 from database.mongodb import MongoDB
 from spam_filter.spam_filter import SpamFilter
-from twitter.tweet_pipeline import TwitterPipeline
 
 from omegaconf import OmegaConf
 from pytz import timezone
@@ -67,7 +67,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
 
 if __name__ == "__main__":
-    config = OmegaConf.load(f"./utils/base_config.yaml")
+    config = OmegaConf.load("./utils/base_config.yaml")
 
     # init modules
     spam_filter = SpamFilter()
