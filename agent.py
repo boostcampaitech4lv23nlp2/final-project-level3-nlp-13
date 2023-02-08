@@ -35,6 +35,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
             if is_spam:
                 my_reply = reply_to_spam = "...."
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=reply_to_spam)
+                score = 0.0
             else:
                 # 리트리버
                 retrieved = elastic_retriever.return_answer(user_message)
