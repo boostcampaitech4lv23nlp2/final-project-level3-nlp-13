@@ -76,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str, default="base_config")
 
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./config/{args.config}.yaml")
+    config = OmegaConf.load(f"./utils/{args.config}.yaml")
 
     # seed 설정
     SEED = 123

@@ -5,12 +5,13 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import BotReply, UserTweet
+from utils.classes import BotReply, UserTweet
 from database.mongodb import MongoDB
-from omegaconf import OmegaConf
-from pytz import timezone
 from spam_filter.spam_filter import SpamFilter
 from twitter.tweet_pipeline import TwitterPipeline
+
+from omegaconf import OmegaConf
+from pytz import timezone
 
 # fmt: off
 special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해" ] #TO-Do
@@ -66,13 +67,10 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
-    parser.add_argument("--datasets", type=str, nargs="+")
-    parser.add_argument("--query", type=str)
+    parser = ArgumentParser()
     parser.add_argument("--config", "-c", type=str, default="base_config")
-
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./config/{args.config}.yaml")
+    config = OmegaConf.load(f"./utils/{args.config}.yaml")
 
     # init modules
     spam_filter = SpamFilter()
