@@ -62,8 +62,8 @@ class TwitterPipeline:
     def reply_tweet(self, tweet, reply):
         self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
 
-    def create_tweet(self, text):
-        self.client.create_tweet(text='@endlessrain_dev 입닥쳐 말포이')
+    def create_tweet(self, id, text):
+        self.client.create_tweet(text='@{} {}'.format(str(id), text))
 
     def like_tweet(self, tweet):
         self.client.like(tweet.tweet_id)
