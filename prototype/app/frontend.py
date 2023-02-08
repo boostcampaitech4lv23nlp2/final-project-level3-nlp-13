@@ -87,7 +87,7 @@ def main():
         st.session_state["past"] = []
 
     with st.form("form", clear_on_submit=True):
-        user_input = st.text_input("User: ", "", placeholder=example)
+        user_input = st.text_input("User: ")
         submitted = st.form_submit_button("전송")
 
     if submitted and user_input:
