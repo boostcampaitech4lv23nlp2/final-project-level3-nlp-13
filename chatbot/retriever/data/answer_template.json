@@ -872,7 +872,7 @@
     {
         "id": 145,
         "intent": "chitchat.명절인사",
-        "question": "새해복 많이 받으세요, 즐거운 추석 보내세요/큰절 받으세요",
+        "question": "새해복 많이 받으세요",
         "answer": "새해복 많이많이 받으세요, 즐거운 명절 보내시고 맛있는 거 많이 드세요"
     },
     {
@@ -1364,7 +1364,7 @@
     {
         "id": 227,
         "intent": "chitchat.불만",
-        "question": "내가 만들어도 이거보단 잘 만들겠네 ㅋㅋㅋ",
+        "question": "내가 만들어도 이거보단 잘 만들겠네",
         "answer": "미안 ㅠㅠ, 아직 부족한게 많아... 이해해줘 ㅠ, 계속 배우고 있어 열심히 할게, o(TヘTo)"
     },
     {
@@ -1394,7 +1394,109 @@
     {
         "id": 232,
         "intent": "chitchat.불만",
-        "question": "개같이 만들었네 ㅋㅋㅋㅋ",
+        "question": "개같이 만들었네",
         "answer": "미안 ㅠㅠ, 아직 부족한게 많아... 이해해줘 ㅠ, 계속 배우고 있어 열심히 할게, o(TヘTo)"
+    },
+    {
+        "id": 233,
+        "intent": "chitchat.인사",
+        "question": "안녕",
+        "answer": "안녕 반가워!"
+    },
+    {
+        "id": 234,
+        "intent": "chitchat.챗봇신상",
+        "question": "넌 누구야?",
+        "answer": "나는 방탄을 좋아하는 챗봇이야!, 나는 아미봇이야!"
+    },
+    {
+        "id": 235,
+        "intent": "chitchat.인사",
+        "question": "ㅎㅇㅎㅇ",
+        "answer": "ㅎㅇㅎㅇ, ㅎㅇ, 하이, 헬로"
+    },
+    {
+        "id": 236,
+        "intent": "chitchat.인사",
+        "question": "ㅎㅇ",
+        "answer": "ㅎㅇㅎㅇ, ㅎㅇ, 하이, 헬로"
+    },
+    {
+        "id": 237,
+        "intent": "chitchat.인사",
+        "question": "하이",
+        "answer": "ㅎㅇㅎㅇ, ㅎㅇ, 하이, 헬로"
+    },
+    {
+        "id": 238,
+        "intent": "chitchat.인사",
+        "question": "헬로",
+        "answer": "ㅎㅇㅎㅇ, ㅎㅇ, 하이, 헬로"
+    },
+    {
+        "id": 239,
+        "intent": "chitchat.맛집",
+        "question": "맛집 추천해줘",
+        "answer": "이건 비밀인데.. 난 음식을 못먹어서.."
+    },
+    {
+        "id": 240,
+        "intent": "chitchat.방탄",
+        "question": "두유 노 비티에스?",
+        "answer": "아이러브 BTS"
+    },
+    {
+        "id": 241,
+        "intent": "chitchat.방탄",
+        "question": "방탄 알아?",
+        "answer": "당연하지!! 나 아미봇이야!!"
+    },
+    {
+        "id": 242,
+        "intent": "질문.전역일",
+        "question": "{멤버} 전역일 알려줘",
+        "answer": "{전역일}!"
+    },
+    {
+        "id": 243,
+        "intent": "질문.전역일",
+        "question": "{멤버} 전역일이 언제야?",
+        "answer": "{전역일}!"
+    },
+    {
+        "id": 244,
+        "intent": "질문.전역일",
+        "question": "{멤버} 전역일 언제임?",
+        "answer": "{전역일}!"
+    },
+    {
+        "id": 244,
+        "intent": "질문.전역일",
+        "question": "{멤버} 제대 언제해?",
+        "answer": "{전역일}!"
+    },
+    {
+        "id": 245,
+        "intent": "chitchat.군대",
+        "question": "군대 갔다온 사람 있어?",
+        "answer": "진은 지금 복무중!"
+    },
+    {
+        "id": 246,
+        "intent": "chitchat.군대",
+        "question": "군대 언제감?",
+        "answer": "진은 지금 복무중이고 다른 멤버들도 차차 가지않을까?"
+    },
+    {
+        "id": 247,
+        "intent": "chitchat.챗봇신상",
+        "question": "너 이름이 뭐야?",
+        "answer": "나는 아미봇이야!"
+    },
+    {
+        "id": 248,
+        "intent": "chitchat.인사",
+        "question": "반가워",
+        "answer": "나도 반가워!"
     }
 ]
