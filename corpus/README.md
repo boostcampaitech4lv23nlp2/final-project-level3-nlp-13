@@ -37,9 +37,9 @@ python build_corpus.py -c kin -q {키워드} -n {수집량} --do_crawl
 ```
 
 ## 더쿠
-주어진 키워드에 관한 더쿠 hot게시판, 방탄 게시판 ~
+주어진 키워드에 관한 더쿠 hot게시판, 방탄 게시판 ~ 2페이지부터 수집.(1페이지는 비회원 시간제한있음), 1페이지당 세부 20개의 링크가있어서 n * 20개의 사이트에서 글 내용과 댓글을 수집합니다.
 
 #### 크롤링
 ```
-python build_corpus.py -c
+python build_corpus.py -c theqoo -n {수집량}
 ```
