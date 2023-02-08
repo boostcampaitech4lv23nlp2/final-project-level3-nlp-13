@@ -1,5 +1,4 @@
 import time
-from argparse import ArgumentParser
 from datetime import datetime
 
 from chatbot.generator.util import Generator
@@ -20,7 +19,7 @@ special_tokens = ["BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김�
 def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, generator, db):
     today = datetime.now(timezone("Asia/Seoul")).strftime("%m%d")
 
-    # 1. twitter api에서 메시지 불러오기
+    # twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
     if len(new_tweets) == 0:  
         # 새 메시지가 없으면
@@ -68,10 +67,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser()  # HfArgumentParser((AgentArguments))
-    parser.add_argument("--config", "-c", type=str, default="base_config")
-    args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./utils/{args.config}.yaml")
+    config = OmegaConf.load(f"./utils/base_config.yaml")
 
     # init modules
     spam_filter = SpamFilter()
