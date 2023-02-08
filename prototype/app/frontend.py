@@ -66,19 +66,6 @@ def main():
     top_p = st.sidebar.slider("top p sampling", 0.1, 1.0, step=0.01, value=0.95)
 
     # uploaded_file = st.file_uploader("Choose an file", type=["txt"])
-    q_examples = [
-        "보라합니다",
-        "BTS 한국 정규 1집이 뭐야?",
-        "슈가 본명 뭐야?",
-        "RM 본명 뭐야?",
-        "뷔 본명 뭐야?",
-        "제이홉은 본명 뭐야?",
-        "진 본명 뭐야?",
-        "정국이 키 몇이야?",
-        "지민이 고향이 어디야?",
-        "노래 추천해줘",
-    ]
-    example = q_examples[random.randrange(len(q_examples))]
 
     if "generated" not in st.session_state:
         st.session_state["generated"] = []
@@ -87,7 +74,7 @@ def main():
         st.session_state["past"] = []
 
     with st.form("form", clear_on_submit=True):
-        user_input = st.text_input("User: ", f"{example}")
+        user_input = st.text_input("User: ", "BTS 한국 정규 2집이 뭐야?")
         submitted = st.form_submit_button("전송")
 
     if submitted and user_input:
