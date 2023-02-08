@@ -212,6 +212,7 @@ nohup.out
 
 chatbot/retriever/logs
 pretraining/command
+chatbot/generator/pretraining/command
 !chatbot/retriever/data
 *.out
 log
