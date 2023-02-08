@@ -24,14 +24,8 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
     new_tweets = twitter_pipeline.get_mentions()
     if len(new_tweets) == 0:  
         # 새 메시지가 없으면
-        print('글 좋아요 테스트1')
-        twitter_pipeline.like_tweet(new_tweets)
-        #twitter_pipeline.create_tweet(text='@endlessrain_dev, 입닥쳐말포이')
         time.sleep(60.0)
     else:
-        print('글 좋아요 테스트2')
-        twitter_pipeline.like_tweet(new_tweets)
-        #twitter_pipeline.create_tweet(text='@endlessrain_dev, 입닥쳐말포이')
         for tweet in reversed(new_tweets):
             time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
             user_message = tweet.message.lower()
@@ -55,6 +49,8 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
                     score = 0.0
                 # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
+                # twitter 좋아요
+                twitter_pipeline.like_tweet(tweet)
 
             # logging
             record = BotReply(
@@ -84,7 +80,7 @@ if __name__ == "__main__":
     spam_filter = SpamFilter()
     twitter_pipeline = TwitterPipeline(FILE_NAME="./twitter/last_seen_id.txt", bot_username="armybot_13")
     data_pipeline = DataPipeline(log_dir="log", special_tokens=special_tokens)
-    #elastic_retriever = ElasticRetriever()
+    elastic_retriever = ElasticRetriever()
     generator = Generator(config)
     db = MongoDB()
 
