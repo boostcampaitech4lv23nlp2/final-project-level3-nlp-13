@@ -18,7 +18,6 @@ auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET_KEY)
 auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET_TOKEN)
 User = namedtuple("User", "user_name user_screen_name")
 
-
 @dataclass
 class TwitterPipeline:
     FILE_NAME: str
@@ -49,24 +48,25 @@ class TwitterPipeline:
             for data in mentions["data"]:
                 message = data["text"].replace(f"@{self.bot_username}", "").strip()
                 user = users[data["author_id"]]
-
+                
                 if data["author_id"] == self.bot_user_id:
                     # 우리 chatbot이 쓴 글이
                     continue
 
-                tweet = UserTweet(
-                    user_id=data["author_id"], tweet_id=data["id"], message=message, user_name=user.user_name, user_screen_name=user.user_screen_name
-                )
+                tweet = UserTweet(user_id=data["author_id"], tweet_id=data["id"], message=message, user_name=user.user_name, user_screen_name=user.user_screen_name)
                 new_tweets.append(tweet)
             self.since_id = mentions["meta"]["newest_id"]
             self.store_new_since_id(self.since_id)
         return new_tweets
 
     def reply_tweet(self, tweet, reply):
-        try:
-            self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
-        except:
-            print("Error occured when sending a reply")
+        self.client.create_tweet(in_reply_to_tweet_id=tweet.tweet_id, text=reply)
+
+    def create_tweet(self, id, text):
+        self.client.create_tweet(text='@{} {}'.format(str(id), text))
+
+    def like_tweet(self, tweet):
+        self.client.like(tweet.tweet_id)
 
     def retrieve_last_since_id(self):
         """마지막으로 확인한 id를 반환"""

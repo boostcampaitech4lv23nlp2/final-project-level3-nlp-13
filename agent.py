@@ -22,7 +22,7 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
 
     # 1. twitter api에서 메시지 불러오기
     new_tweets = twitter_pipeline.get_mentions()
-    if len(new_tweets) == 0:
+    if len(new_tweets) == 0:  
         # 새 메시지가 없으면
         time.sleep(60.0)
     else:
@@ -49,6 +49,8 @@ def main(spam_filter, twitter_pipeline, data_pipeline, elastic_retriever, genera
                     score = 0.0
                 # twitter로 보내기
                 twitter_pipeline.reply_tweet(tweet=tweet, reply=my_reply)
+                # twitter 좋아요
+                twitter_pipeline.like_tweet(tweet)
 
             # logging
             record = BotReply(
