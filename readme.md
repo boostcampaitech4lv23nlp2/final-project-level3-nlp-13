@@ -142,7 +142,8 @@
 - Retreiver model
     - Elastic Search with BM25
 - Spam filtering model
-    - klue/bert-base 기반 finetuning [nlpotato/spam-filtering-bert-base-10e](https://huggingface.co/nlpotato/spam-filtering-bert-base-10e)
+    - klue/bert-base 기반 finetuning 
+        -  [nlpotato/spam-filtering-bert-base-10e](https://huggingface.co/nlpotato/spam-filtering-bert-base-10e)
 
 <br/>
 
