@@ -555,7 +555,7 @@ def main():
         column_names = datasets["train"].column_names
     else:
         column_names = datasets["validation"].column_names
-    text_column_name = "Q" if "Q" in column_names else column_names[0]  # 💥 수정
+    text_column_name = "text" if "text" in column_names else column_names[0]  # 💥 수정
 
     max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
@@ -564,10 +564,10 @@ def main():
     sentence_tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
 
     def sentence_split_function(example):  # 💥 수정
-        sents = sentence_tokenizer.tokenize(example["Q"])
+        sents = sentence_tokenizer.tokenize(example["text"])
         # use pad token as end of sentence indicator
         new_text = tokenizer.bos_token + f"{tokenizer.pad_token}".join(sents) + tokenizer.eos_token
-        return {"Q": new_text}
+        return {"text": new_text}
 
     split_datasets = datasets.map(
         sentence_split_function,

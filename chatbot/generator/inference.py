@@ -4,8 +4,8 @@ import random
 
 import numpy as np
 import torch
-from chatbot.generator.util import Generator
 from omegaconf import OmegaConf
+from util import Generator
 
 
 def main(config):
@@ -76,10 +76,10 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str, default="base_config")
 
     args, _ = parser.parse_known_args()
-    config = OmegaConf.load(f"./utils/{args.config}.yaml")
+    config = OmegaConf.load(f"./config/{args.config}.yaml")
 
     # seed 설정
-    SEED = 123
+    SEED = 42
     random.seed(SEED)
     np.random.seed(SEED)
     os.environ["PYTHONHASHSEED"] = str(SEED)
