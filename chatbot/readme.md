@@ -1,8 +1,8 @@
-## generator 모델 finetuning 실행 방법
+## Generator 모델 finetuning 실행 방법
 ```
 python generator/train.py -c base_config
 ```
-## generator 모델 pretraining 실행 방법
+## Generator 모델 pretraining 실행 방법
 ### BART
 ```
 python generator/pretraining/run_bart_dlm_flax.py \
@@ -60,7 +60,7 @@ python generator/pretraining/run_t5_mlm_flax.py \
 	--eval_steps="10"
 ```
 
-## retriever 모델 실행 방법
+## Retriever 모델 실행 방법
 ```
 # elast_search 설치
 bash install_elastic_search.sh
