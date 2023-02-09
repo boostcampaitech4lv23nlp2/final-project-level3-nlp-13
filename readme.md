@@ -53,13 +53,13 @@
 
 ```
 .
-|-- agent.py
-|-- chatbot
+|-- agent.py # 트위터 챗봇 서비스 최종 코드
+|-- chatbot # 챗봇 generator, retriever 모델 모듈
 |   |-- generator
 |   |-- pipeline
 |   |-- readme.md
 |   `-- retriever
-|-- corpus
+|-- corpus # 코퍼스 구축 모듈
 |   |-- README.md
 |   |-- build_corpus.py
 |   |-- crawlers
@@ -68,13 +68,11 @@
 |   `-- mongodb.py
 |-- install_requirements.sh
 |-- notebook
-|   |-- AIhub_data_to_csv.ipynb
-|   |-- spell_compare.ipynb
-|   `-- upload_dataset_to_huggingface.ipynb
+|   |-- AIhub_data_to_csv.ipynb # 데이터를 csv로 변환
+|   |-- spell_compare.ipynb # 맞춤법 교정 라이브러리 성능 비교
+|   `-- upload_dataset_to_huggingface.ipynb # 데이터셋을 HF에 ㅇ
 |-- poetry.lock
-|-- pretraining
-|   `-- readme.md
-|-- prototype
+|-- prototype # 프로토타입 app 모듈
 |   |-- Makefile
 |   |-- app
 |   |-- config
@@ -85,14 +83,14 @@
 |-- pyproject.toml
 |-- readme.md
 |-- requirements.txt
-|-- spam_filter
+|-- spam_filter # 스팸 필터 모듈
 |   |-- config
 |   |-- data_loader
 |   |-- readme.md
 |   |-- spam_filter.py
 |   |-- spam_inference.py
 |   `-- spam_train.py
-|-- twitter
+|-- twitter # 트위터 연결 모듈
 |   |-- automatic_reply.py
 |   |-- config
 |   |-- data_pipeline.py
@@ -102,11 +100,11 @@
 |   |-- tweet_pipeline.py
 |   `-- utils
 `-- utils
-    |-- EDA.py
+    |-- EDA.py # kiwi로 단어 빈도수 확인
     |-- base_config.yaml
-    |-- classes.py
-    |-- push_model_to_hub.py
-    `-- wordcloud.py
+    |-- classes.py # dataclass 모듈별 입출력 포맷
+    |-- push_model_to_hub.py # huggingface에 모델 업로드
+    `-- wordcloud.py # 워드클라우드로 단어 시각화
 ```
     
 </div>
