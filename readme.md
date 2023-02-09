@@ -3,8 +3,8 @@
 <br/>
 
 ## 1️⃣ Introduction
-같이 덕질하자! ArmyBot은 흔한 아미 트친(BTS을 응원하는 트위터 친구)처럼 이런 저런 이야기를 나눌 수 있는 챗봇 서비스입니다.<br/>
-BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https://twitter.com/armybot_13)으로 트윗만 보내면 ArmyBot이 답장을 합니다.
+같이 덕질하자! **ArmyBot**은 흔한 아미 트친(BTS을 응원하는 트위터 친구)처럼 이런 저런 이야기를 나눌 수 있는 챗봇 서비스입니다.<br/>
+**BTS 관련 덕심 가득한 질문부터 일상 대화**까지 [@armybot_13](https://twitter.com/armybot_13)으로 트윗만 보내면 ArmyBot이 답장을 합니다.
 
 <br/>
 
@@ -22,18 +22,19 @@ BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https
 - `이원재` 서비스 기획 및 PM, 사전학습용 데이터 수집 및 전처리, 답변 관련 처리
 - `이정아` 스팸 필터링 데이터 수집 및 모델 구축, 트위터 연결 및 서비스
 - `임성근` 더쿠 데이터 수집 및 전처리 파이프라인 구축, 정보성 데이터 수집
-- `정준녕` 생성 모델 구축, 생성 모델 학습용 데이터 수집, 프로토타입 구현
+- `정준녕` 생성 모델 파이프라인 구축, 생성 모델 프로토타입 및 시연용 데모 페이지 구현, 챗봇 서비스용 데이터 구축
 
 <br/>
 
 ## 3️⃣ Demo Video
-![service example](https://im.ezgif.com/tmp/ezgif-1-a031a0f781.gif)
 
+![service example](https://im.ezgif.com/tmp/ezgif-1-93e72bf6dc.gif)
 
 <br/>
 
 ## 4️⃣ Service Architecture
-<p align="center"><img src="https://user-images.githubusercontent.com/65378914/217187792-2f0c2f93-d389-46d9-b361-d8ac7e4434c6.png" width="90%" height="90%"/></p>
+
+<p align="center"><img src="https://user-images.githubusercontent.com/42535803/217479698-d16965e8-4ac0-4b65-9cfa-e7d2011ef02a.png" width="90%" height="90%"/></p>
 
 1. 사용자가 봇계정을 태그하고 트윗 작성
 2. 악성 트윗 필터링
@@ -111,8 +112,8 @@ BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https
 <br/>
 
 ## 5️⃣ DataSets
+<p align="center"><img src="https://user-images.githubusercontent.com/42535803/217480915-626de87e-b45f-4945-8454-1918ff2f8362.png" width="80%" height="80%"/></p>
 
-![dataset](https://user-images.githubusercontent.com/65378914/217187965-e6cf8c16-38af-4392-bdd0-63bcb6f362fb.png)
 - [AI Hub 연예뉴스](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=625) : 3,144개 10.67MB
 - 네이버 뉴스 BTS 관련 기사 : 1,337개 4.85MB
 - [일상 대화 및 위로 문답 챗봇 데이터](https://github.com/songys/Chatbot_data) : 962,681개 108.43MB
@@ -132,10 +133,10 @@ BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https
         - Vocab size : 50383
         - "BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해"
     - Finetuning
-        - Curriculum learning
-            1. 일상 대화 및 위로 문답 챗봇 데이터
-            2. BTS 관련 네이버 지식인 데이터
-            3. 더쿠 BTS 카테고리 글/댓글 + 트위터 BTS 팬 트윗/답글 데이터
+
+        1. 일상 대화 및 위로 문답 챗봇 데이터
+        2. BTS 관련 네이버 지식인 데이터
+        3. 더쿠 BTS 카테고리 글/댓글 + 트위터 BTS 팬 트윗/답글 데이터
     - Model size : 1.1GB
     - Number of trainable parameters : 275,617,536
 - Retreiver model
@@ -152,6 +153,7 @@ BTS 관련 덕심 가득한 질문부터 일상 대화까지 [@armybot_13](https
 $ git clone https://github.com/boostcampaitech4lv23nlp2/final-project-level3-nlp-13.git
 $ cd final-project-level3-nlp-13
 $ poetry install
+
 ```
 
 ### Set up Elastic Search
