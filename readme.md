@@ -173,7 +173,7 @@ $ python agent.py
 
 ## 8️⃣  Future Works
 - 2023년 2월 9일부터 트위터 무료 API 서비스 중단 대비
-- 키워드 매칭 ****기반 **intent classification & entity recognition 개선**
+- 키워드 매칭 기반 **intent classification & entity recognition 개선**
     - FastText 임베딩 도입
     - 머신러닝 기반 intent classifier & entity detector로 전환
 - 생성 모델 개선
