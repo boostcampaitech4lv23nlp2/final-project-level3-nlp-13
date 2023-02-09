@@ -27,7 +27,7 @@
 <br/>
 
 ## 3️⃣ Demo Video
-![service example](https://im.ezgif.com/tmp/ezgif-1-a031a0f781.gif)
+![service example](https://im.ezgif.com/tmp/ezgif-1-52e1ac1b9c.mov)
 
 
 <br/>
