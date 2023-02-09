@@ -172,10 +172,20 @@ $ python agent.py
 <br/>
 
 ## 8️⃣  Future Works
-- 생성모델 성능 개선
-- FastText를 이용해 임베딩
-- Salient Span Masking을 도입한 사전학습
-- 답장 외 챗봇의 글 생성 기능 및 이벤트 기능 추가
+- 2023년 2월 9일부터 트위터 무료 API 서비스 중단 대비
+- 키워드 매칭 ****기반 **intent classification & entity recognition 개선**
+    - FastText 임베딩 도입
+    - 머신러닝 기반 intent classifier & entity detector로 전환
+- 생성 모델 개선
+    - 학습 데이터 및 전처리 추가, 추가 실험 및 최적화
+- 서비스 품질 개선
+    - DB에 **intent와 답변 템플릿 추가**
+- 악성 트윗 필터링 개선
+    - **비꼬는 문장**들 위주로 학습 데이터 추가
+- **Salient Span Masking**을 도입한 사전학습
+    - BTS 관련 주요 키워드 위주로 마스킹을 적용하는 사전학습
+- 답장 외 챗봇의 글 생성 기능 및 **이벤트** 기능 추가
+- 싱글턴 → **멀티턴 방식**의 챗봇으로 **대화 문맥을 고려**하여 답변하도록 개선
 
 <br/>
 
