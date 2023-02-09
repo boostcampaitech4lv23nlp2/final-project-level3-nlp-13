@@ -28,7 +28,7 @@
 
 ## 3️⃣ Demo Video
 
-![service example](https://im.ezgif.com/tmp/ezgif-1-93e72bf6dc.gif)
+![service example](./utils/example.gif)
 
 <br/>
 
@@ -53,57 +53,60 @@
 
 ```
 .
+|-- agent.py
 |-- chatbot
-|   `-- generator
-|       |-- config
-|       |   `-- base_config.yaml
-|       |-- data_loader
-|       |   `-- data_loaders.py
-|       |-- train.py
-|       `-- trainer
-|           `-- trainer.py
-|-- config
-|   `-- base_config.yaml
+|   |-- generator
+|   |-- pipeline
+|   |-- readme.md
+|   `-- retriever
 |-- corpus
+|   |-- README.md
 |   |-- build_corpus.py
-|   `-- crawlers
-|       |-- __init__.py
-|       |-- aihub_crawler.py
-|       |-- kin_crawler.py
-|       |-- naver_crawler.py
-|       |-- naver_jisikin_crawler.py
-|       |-- theqoo_crawler.py
-|       `-- twitter_crawler.py
-|-- inference.py
+|   |-- crawlers
+|   `-- twitter_classification
+|-- database
+|   `-- mongodb.py
 |-- install_requirements.sh
 |-- notebook
 |   |-- AIhub_data_to_csv.ipynb
+|   |-- spell_compare.ipynb
 |   `-- upload_dataset_to_huggingface.ipynb
 |-- poetry.lock
 |-- pretraining
-|   |-- run_bart_dlm_flax.py
-|   |-- run_clm_flax.py
-|   `-- run_t5_mlm_flax.py
+|   `-- readme.md
 |-- prototype
 |   |-- Makefile
 |   |-- app
-|   |   |-- __main__.py
-|   |   |-- frontend.py
-|   |   |-- main.py
-|   |   |-- model.py
-|   |   `-- pyproject.toml
 |   |-- config
-|   |   `-- base_config.yaml
 |   |-- poetry.lock
 |   |-- pyproject.toml
+|   |-- readme.md
 |   `-- requirements.txt
 |-- pyproject.toml
 |-- readme.md
 |-- requirements.txt
+|-- spam_filter
+|   |-- config
+|   |-- data_loader
+|   |-- readme.md
+|   |-- spam_filter.py
+|   |-- spam_inference.py
+|   `-- spam_train.py
+|-- twitter
+|   |-- automatic_reply.py
+|   |-- config
+|   |-- data_pipeline.py
+|   |-- last_seen_id.txt
+|   |-- main.py
+|   |-- readme.md
+|   |-- tweet_pipeline.py
+|   `-- utils
 `-- utils
     |-- EDA.py
+    |-- base_config.yaml
+    |-- classes.py
     |-- push_model_to_hub.py
-    `-- util.py
+    `-- wordcloud.py
 ```
     
 </div>

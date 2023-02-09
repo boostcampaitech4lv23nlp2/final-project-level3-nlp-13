@@ -7,12 +7,12 @@
 
 #### 크롤링
 ```
-python 
+python build_corpus.py -c twitter -s {screen_name} --do_crawl
 ```
 
 #### 전처리
 ```
-python 
+corpus/twitter_classifcation의 README 참고
 ```
 
 ## Naver News
