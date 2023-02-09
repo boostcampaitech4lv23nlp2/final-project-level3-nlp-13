@@ -12,12 +12,12 @@ from datetime import datetime
 from chatbot.generator.util import Generator
 from chatbot.pipeline.data_pipeline import DataPipeline
 from chatbot.retriever.elastic_retriever import ElasticRetriever
-from classes import BotReply, UserTweet
 
 # from database.mongodb import MongoDB
 from omegaconf import OmegaConf
 from pytz import timezone
 from spam_filter.spam_filter import SpamFilter
+from utils.classes import BotReply, UserTweet
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", "-c", type=str, default="base_config")
