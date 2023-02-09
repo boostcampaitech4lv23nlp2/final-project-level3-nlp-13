@@ -30,9 +30,31 @@ def remove_emoji(text):
 
 def remove_last_word_is_only_brace(sent):
     # 마지막 단어가 괄호로만 이루어진 경우 제거
-    if sent[-1] == "(":
-        sent = sent[:-1].strip()
+    try:
+        if sent[-1] == "(":
+            sent = sent[:-1].strip()
+    except:
+        pass
     return sent
+
+
+def remove_not_korean(sent):
+    if not re.search(r"[가-힣]", sent):
+        return ""
+    return sent
+
+
+def remove_eng_upper_later(sent):
+    # 영어 대문자로 이루어진 단어 이후 모두 제거
+    eng_upper_idx = re.search(r"[A-Z]+", sent)
+    if eng_upper_idx:
+        sent = sent[: eng_upper_idx.start()]
+    return sent
+
+
+def remove_hash_tag(sent):
+    # 해쉬태그 제거
+    return re.sub(r"#\w+", "", sent)
 
 
 def preprocess(sent):
@@ -67,6 +89,15 @@ def preprocess(sent):
 
     # &amp; => &
     sent = re.sub(r"&amp;", "&", sent)
+
+    # 한국어가 아닌 다른 언어의 트윗일 경우 제거
+    sent = remove_not_korean(sent)
+
+    # 해쉬태그 제거
+    sent = remove_hash_tag(sent)
+
+    # 영어 대문자로 이루어진 단어 제거 (DIOR, GLOBAL, JIMIN)
+    sent = remove_eng_upper_later(sent)
 
     # 앞 뒤 공백 제거
     sent = sent.strip()
