@@ -27,15 +27,14 @@
 <br/>
 
 ## 3️⃣ Demo Video
-![service example](https://im.ezgif.com/tmp/ezgif-1-93e72bf6dc.gif)
 
+![service example](https://im.ezgif.com/tmp/ezgif-1-93e72bf6dc.gif)
 
 <br/>
 
 ## 4️⃣ Service Architecture
+
 <p align="center"><img src="https://user-images.githubusercontent.com/42535803/217479698-d16965e8-4ac0-4b65-9cfa-e7d2011ef02a.png" width="90%" height="90%"/></p>
-
-
 
 1. 사용자가 봇계정을 태그하고 트윗 작성
 2. 악성 트윗 필터링
@@ -134,6 +133,7 @@
         - Vocab size : 50383
         - "BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해"
     - Finetuning
+
         1. 일상 대화 및 위로 문답 챗봇 데이터
         2. BTS 관련 네이버 지식인 데이터
         3. 더쿠 BTS 카테고리 글/댓글 + 트위터 BTS 팬 트윗/답글 데이터
@@ -153,6 +153,7 @@
 $ git clone https://github.com/boostcampaitech4lv23nlp2/final-project-level3-nlp-13.git
 $ cd final-project-level3-nlp-13
 $ poetry install
+
 ```
 
 ### Set up Elastic Search

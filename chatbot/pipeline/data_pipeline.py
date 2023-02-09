@@ -22,41 +22,43 @@ class DataPipeline:
         for token in self.special_tokens:
             self.tagger.add_user_word(token, "NNP")
 
-    def preprocess(self, queries: typing.List[str]):
-        queries = self.get_clean_text(queries)
-        queries = self.normalize(queries)
-        return queries
+    def postprocess(self, text:str, user_screen_name) -> str:
+        if "<account>" in text:
+            text = re.sub("<account>", user_screen_name, text) 
+        return text
 
-    def get_clean_text(self, queries: typing.List[str], n: int = 1) -> typing.List[str]:
+    def preprocess(self, query: str) -> str:
+        query = self.get_clean_text(query)
+        query = self.normalize(query)
+        return query
+
+    def get_clean_text(self, query: str, n: int = 1) -> str:
         cleaned = []
-        for query in queries:
-            # query = query.text
-            query = self.remove_invalid_chrs(query)
-            query = self.remove_duplicates(query, n=n)
-            cleaned.append(query)
+        query = self.remove_invalid_chrs(query)
+        query = self.remove_duplicates(query, n=n)
+        cleaned.append(query)
         return cleaned
 
-    def remove_invalid_chrs(self, query: str):
+    def remove_invalid_chrs(self, query: str) -> str:
         """한글, 알파벳, 숫자, 물음표, 스페이스 외 제거"""
         return re.sub(r"[^ㄱ-힣A-Za-z0-9\? ]", "", query).strip()
 
-    def remove_duplicates(self, query: str, n: int):
+    def remove_duplicates(self, query: str, n: int) -> str:
         """단독 자모음 또는 구두점 중복을 제거하여 연속되는 n개로 만듦"""
         return re.sub(r"([ㄱ-ㅣ\?])\1+", r"\1" * n, query)
 
-    def normalize(self, queries: typing.List[str]) -> typing.List[Sentence]:
+    def normalize(self, query: str) -> typing.List[Sentence]:
         """
         1. 띄어쓰기 교정, 간단한 오탈자 교정 후
         2. 문장 분리 하여 리턴
         """
         normalized = []
-        for query in queries:
-            query = self.correct_spacing(query)
-            sents = self.split_into_sentences(query)
-            ls = []
-            for sent in sents:
-                sent = self.tokenize(sent)
-                ls.append(sent)
+        query = self.correct_spacing(query)
+        sents = self.split_into_sentences(query)
+        ls = []
+        for sent in sents:
+            sent = self.tokenize(sent)
+            ls.append(sent)
             normalized.append(ls)
         return normalized
 

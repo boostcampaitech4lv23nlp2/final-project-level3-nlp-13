@@ -11,9 +11,11 @@ class Default:
 
 @dataclass
 class UserTweet(Default):
-    screen_name: str
+    user_id: str
+    user_name: str
+    user_screen_name: str
     message: str
-    reply:str
+    tweet_id: str
 
 
 @dataclass
@@ -21,3 +23,13 @@ class RetrieverOutput(Default):
     query: typing.Optional[str] = None
     bm25_score: typing.Optional[float] = None
     db_name: typing.Optional[str] = None
+
+
+@dataclass
+class BotReply(Default):
+    tweet: UserTweet
+    reply: str
+    score: float
+    time: str
+    is_spam: bool
+    time: str
