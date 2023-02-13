@@ -1,8 +1,9 @@
-## requirements 설치
+## poetry 실행
 ```
-pip install requirements.txt ?
+poetry shell
 ```
 
 ## 프로토타입 실행
 ```
+make -j 2 run_app
 ```
