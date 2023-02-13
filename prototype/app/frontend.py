@@ -46,7 +46,7 @@ def CreateLogger(logger_name):
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
         with open("./logs/service.log", "w+") as f:
-            f.write("Time\tUser\tBot\n")
+            f.write("Time\tUser\tBot\nGenerated")
     LOG_FORMAT = "%(asctime)s\t%(message)s"
     file_handler = logging.FileHandler("./logs/service.log", mode="a", encoding="utf-8")
     file_handler.setFormatter(Formatter(LOG_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"))
@@ -72,7 +72,7 @@ example = q_examples[random.randrange(len(q_examples))]
 
 
 def main():
-    st.title("nlpotato chatbot")
+    st.title("NLPotato BTS 덕질메이트 챗봇")
     st.sidebar.subheader("Generation Settings")
     max_len = st.sidebar.slider("max length", 30, 100, value=60)
     top_k = st.sidebar.slider("top k sampling", 10, 50, value=25)
@@ -94,12 +94,12 @@ def main():
         files = {"sentence": user_input, "max_len": max_len, "top_k": top_k, "top_p": top_p}
 
         response = requests.post("http://0.0.0.0:30001/input", data=json.dumps(files))
-        output = response.json()
+        output, is_gen = response.json()
 
         st.session_state.past.append(user_input)
         st.session_state.generated.append(output)
 
-        logger.info(f"{user_input}\t{output.strip()}")
+        logger.info(f"{user_input}\t{output.strip()}\t{is_gen}")
 
     # if uploaded_file:
     #     texts = uploaded_file.getvalue()
