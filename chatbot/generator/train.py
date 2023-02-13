@@ -56,7 +56,7 @@ def main(config):
         else:
             model = AutoModelForSeq2SeqLM.from_pretrained(config.model.name_or_path)
 
-    add_words_file = "../../add_words.pickle"
+    add_words_file = "add_words.pickle"
     if os.path.exists(add_words_file):
         with open(add_words_file, "rb") as fr:
             add_words = pickle.load(fr)
