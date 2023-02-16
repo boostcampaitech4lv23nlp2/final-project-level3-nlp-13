@@ -216,3 +216,6 @@ chatbot/generator/pretraining/command
 !chatbot/retriever/data
 *.out
 log
+airflow/logs
+airflow/airflow*
+airflow/webserver_config.py

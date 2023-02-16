@@ -171,6 +171,30 @@ $ bash install_elastic_search.sh
 $ python agent.py
 ```
 
+### Run airflow
+__Terminal 1__
+```python
+$ cd airflow
+$ export AIRFLOW_HOME=.
+$ airflow db init
+$ airflow users create \
+--username admin \
+--password [password] \
+--firstname [firstname] \
+--lastname [lastname] \
+--role Admin \
+--email [email@address.com]
+$ airflow webserver
+```
+__Terminal 2__
+```python
+$ cd airflow
+$ export AIRFLOW_HOME=.
+$ airflow scheduler
+```
+__localhost:8080 접속 후 이미지에 표시된 부분 클릭__
+![airflow](https://user-images.githubusercontent.com/51015187/219402478-c4022085-91f0-4f65-b4e7-b8195099c463.png)
+
 <br/>
 
 ## 8️⃣  Future Works
