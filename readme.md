@@ -53,13 +53,13 @@
 
 ```
 .
-|-- agent.py
-|-- chatbot
+|-- agent.py # 트위터 챗봇 서비스 최종 코드
+|-- chatbot # 챗봇 generator, retriever 모델 모듈
 |   |-- generator
 |   |-- pipeline
 |   |-- readme.md
 |   `-- retriever
-|-- corpus
+|-- corpus # 코퍼스 구축 모듈
 |   |-- README.md
 |   |-- build_corpus.py
 |   |-- crawlers
@@ -68,13 +68,11 @@
 |   `-- mongodb.py
 |-- install_requirements.sh
 |-- notebook
-|   |-- AIhub_data_to_csv.ipynb
-|   |-- spell_compare.ipynb
-|   `-- upload_dataset_to_huggingface.ipynb
+|   |-- AIhub_data_to_csv.ipynb # 데이터를 csv로 변환
+|   |-- spell_compare.ipynb # 맞춤법 교정 라이브러리 성능 비교
+|   `-- upload_dataset_to_huggingface.ipynb # 데이터셋을 HF에 ㅇ
 |-- poetry.lock
-|-- pretraining
-|   `-- readme.md
-|-- prototype
+|-- prototype # 프로토타입 app 모듈
 |   |-- Makefile
 |   |-- app
 |   |-- config
@@ -85,14 +83,14 @@
 |-- pyproject.toml
 |-- readme.md
 |-- requirements.txt
-|-- spam_filter
+|-- spam_filter # 스팸 필터 모듈
 |   |-- config
 |   |-- data_loader
 |   |-- readme.md
 |   |-- spam_filter.py
 |   |-- spam_inference.py
 |   `-- spam_train.py
-|-- twitter
+|-- twitter # 트위터 연결 모듈
 |   |-- automatic_reply.py
 |   |-- config
 |   |-- data_pipeline.py
@@ -102,11 +100,11 @@
 |   |-- tweet_pipeline.py
 |   `-- utils
 `-- utils
-    |-- EDA.py
+    |-- EDA.py # kiwi로 단어 빈도수 확인
     |-- base_config.yaml
-    |-- classes.py
-    |-- push_model_to_hub.py
-    `-- wordcloud.py
+    |-- classes.py # dataclass 모듈별 입출력 포맷
+    |-- push_model_to_hub.py # huggingface에 모델 업로드
+    `-- wordcloud.py # 워드클라우드로 단어 시각화
 ```
     
 </div>
@@ -136,7 +134,6 @@
         - Vocab size : 50383
         - "BTS", "bts", "RM", "rm", "진", "김석진", "석진", "김남준", "남준", "슈가", "민윤기", "윤기", "제이홉", "정호석", "지민", "박지민", "뷔", "김태형", "태형", "V", "정국", "전정국", "아미", "빅히트", "하이브", "아미", "보라해"
     - Finetuning
-
         1. 일상 대화 및 위로 문답 챗봇 데이터
         2. BTS 관련 네이버 지식인 데이터
         3. 더쿠 BTS 카테고리 글/댓글 + 트위터 BTS 팬 트윗/답글 데이터
@@ -145,7 +142,8 @@
 - Retreiver model
     - Elastic Search with BM25
 - Spam filtering model
-    - bert-base
+    - klue/bert-base 기반 finetuning 
+        -  [nlpotato/spam-filtering-bert-base-10e](https://huggingface.co/nlpotato/spam-filtering-bert-base-10e)
 
 <br/>
 
@@ -171,13 +169,47 @@ $ bash install_elastic_search.sh
 $ python agent.py
 ```
 
+### Run airflow
+__Terminal 1__
+```python
+$ cd airflow
+$ export AIRFLOW_HOME=.
+$ airflow db init
+$ airflow users create \
+--username admin \
+--password [password] \
+--firstname [firstname] \
+--lastname [lastname] \
+--role Admin \
+--email [email@address.com]
+$ airflow webserver
+```
+__Terminal 2__
+```python
+$ cd airflow
+$ export AIRFLOW_HOME=.
+$ airflow scheduler
+```
+__localhost:8080 접속 후 이미지에 표시된 부분 클릭__
+![airflow](https://user-images.githubusercontent.com/51015187/219402478-c4022085-91f0-4f65-b4e7-b8195099c463.png)
+
 <br/>
 
 ## 8️⃣  Future Works
-- 생성모델 성능 개선
-- FastText를 이용해 임베딩
-- Salient Span Masking을 도입한 사전학습
-- 답장 외 챗봇의 글 생성 기능 및 이벤트 기능 추가
+- 2023년 2월 9일부터 트위터 무료 API 서비스 중단 대비
+- 키워드 매칭 기반 **intent classification & entity recognition 개선**
+    - FastText 임베딩 도입
+    - 머신러닝 기반 intent classifier & entity detector로 전환
+- 생성 모델 개선
+    - 학습 데이터 및 전처리 추가, 추가 실험 및 최적화
+- 서비스 품질 개선
+    - DB에 **intent와 답변 템플릿 추가**
+- 악성 트윗 필터링 개선
+    - **비꼬는 문장**들 위주로 학습 데이터 추가
+- **Salient Span Masking**을 도입한 사전학습
+    - BTS 관련 주요 키워드 위주로 마스킹을 적용하는 사전학습
+- 답장 외 챗봇의 글 생성 기능 및 **이벤트** 기능 추가
+- 싱글턴 → **멀티턴 방식**의 챗봇으로 **대화 문맥을 고려**하여 답변하도록 개선
 
 <br/>
 

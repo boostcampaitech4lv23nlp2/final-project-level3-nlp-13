@@ -943,27 +943,27 @@
     },
     {
         "id": 157,
-        "intent": "질문.멤버",
+        "intent": "질문.member",
         "question": "{멤버} 멤버 알려줘",
-        "answer": "{멤버}로 이루어져있어!"
+        "answer": "{member}로 이루어져있어!"
     },
     {
         "id": 158,
-        "intent": "질문.멤버",
+        "intent": "질문.member",
         "question": "{멤버}는 누구누구로 구성되어있어?",
-        "answer": "{멤버}로 이루어져있어!"
+        "answer": "{member}로 이루어져있어!"
     },
     {
         "id": 159,
-        "intent": "질문.멤버",
+        "intent": "질문.member",
         "question": "{멤버}는 누구누구로 이루어져있어?",
-        "answer": "{멤버}로 이루어져있어!"
+        "answer": "{member}로 이루어져있어!"
     },
     {
         "id": 160,
-        "intent": "질문.멤버",
+        "intent": "질문.member",
         "question": "{멤버}는 누구누구로 구성된 그룹이야?",
-        "answer": "{멤버}로 이루어져있어!"
+        "answer": "{member}로 이루어져있어!"
     },
     {
         "id": 161,
@@ -1498,5 +1498,17 @@
         "intent": "chitchat.인사",
         "question": "반가워",
         "answer": "나도 반가워!"
+    },
+    {
+        "id": 249,
+        "intent": "질문.member",
+        "question": "{멤버}는 멤버가 누구누구있어?",
+        "answer": "{member}!"
+    },
+    {
+        "id": 249,
+        "intent": "질문.member",
+        "question": "{멤버} 멤버",
+        "answer": "{member}!"
     }
 ]

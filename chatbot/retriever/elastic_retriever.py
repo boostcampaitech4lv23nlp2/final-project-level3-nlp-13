@@ -8,14 +8,10 @@ from pathlib import Path
 
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
-from chatbot.retriever.fuzzy_matching import FuzzyMatcher
 
 path = "/".join(str(Path(__file__)).split("/")[:-1])
-sys.path.append(
-    os.path.dirname(
-        os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-    )
-)
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))))
+from chatbot.retriever.fuzzy_matching import FuzzyMatcher
 from utils.classes import RetrieverOutput
 
 warnings.filterwarnings("ignore")
@@ -28,10 +24,7 @@ def make_db_data():
     question = data["Q"]
     answer = data["A"]
 
-    db_data = [
-        {"id": i, "intent": it, "question": q, "answer": a}
-        for i, (it, q, a) in enumerate(zip(intent, question, answer))
-    ]
+    db_data = [{"id": i, "intent": it, "question": q, "answer": a} for i, (it, q, a) in enumerate(zip(intent, question, answer))]
     # save data to json file
     if not os.path.exists(f"{path}/data"):
         os.makedirs(f"{path}/data")
@@ -122,10 +115,7 @@ class ElasticRetriever:
                     return {"db_name": db_name, "call_name": member, "query": query}
                 else:
                     for query_token in query_tokens:
-                        if (
-                            self.fuzzy_matcher.levenshtein_ratio(member, query_token)
-                            >= 0.8
-                        ):
+                        if self.fuzzy_matcher.levenshtein_ratio(member, query_token) >= 0.8:
                             query = re.sub(query_token, "{멤버}", query)
                             query = re.sub("데{멤버}년도", "데뷔년도", query)
                             return {
@@ -144,9 +134,7 @@ class ElasticRetriever:
         # return {"db_name": None, "call_name": None, "query": query}
 
     def find_intent(self, query):
-        intent_json = json.load(
-            open(f"{path}/data/intent_keyword.json", "r", encoding="utf-8")
-        )
+        intent_json = json.load(open(f"{path}/data/intent_keyword.json", "r", encoding="utf-8"))
         # 정확한 키워드가 있을 경우 intent 매칭
         # 그렇지 않을 경우에는 fuzzy matching을 통한 intent 매칭 (ration가 0.8 이상인 경우)
         for intent, keywords in intent_json.items():
@@ -157,12 +145,7 @@ class ElasticRetriever:
                 else:
                     query_tokens = query.split()
                     for query_token in query_tokens:
-                        if (
-                            self.fuzzy_matcher.levenshtein_ratio(
-                                keyword.strip(), query_token
-                            )
-                            >= 0.8
-                        ):
+                        if self.fuzzy_matcher.levenshtein_ratio(keyword.strip(), query_token) >= 0.8:
                             return {"intent": intent}
         return {"intent": None}
 
@@ -176,10 +159,7 @@ class ElasticRetriever:
     def choose_answer_template(self, top3_outputs, query_intent):
         # query intent와 top3_outputs의 intent가 일치하면서 score 9점 이상
         for i in range(len(top3_outputs["scores"])):
-            if (
-                top3_outputs["intent"][i].split(".")[1] == query_intent
-                and top3_outputs["scores"][i] >= 9
-            ):
+            if top3_outputs["intent"][i].split(".")[1] == query_intent and top3_outputs["scores"][i] >= 9:
                 answer_candidates = top3_outputs["answers"][i].split(",")
                 # 랜덤하게 answer template 선택
                 final_answer = random.choice(answer_candidates)
@@ -245,18 +225,12 @@ class ElasticRetriever:
         # 4.1 입력 query에 intent가 있는 경우
         if query_intent:
             # 4.1.1 answer template 선정
-            answer_template, bm25_score = self.choose_answer_template(
-                top3_outputs, query_intent
-            )
+            answer_template, bm25_score = self.choose_answer_template(top3_outputs, query_intent)
             # 4.1.2 answer template이 있는 경우
             if answer_template != None:
                 # 4.1.2.1 answer_template의 slot에 db 정보 채우기
-                filled_answer_template = self.fill_answer_slot(
-                    answer_template, db_name, call_name
-                )
-                return RetrieverOutput(
-                    query=filled_answer_template, bm25_score=bm25_score, db_name=db_name
-                )
+                filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
+                return RetrieverOutput(query=filled_answer_template, bm25_score=bm25_score, db_name=db_name)
             # 4.1.3 answer template이 없는 경우 None 반환 => generation 모델에 전달
             else:
                 return RetrieverOutput(query=None, bm25_score=None, db_name=None)
@@ -264,17 +238,12 @@ class ElasticRetriever:
         else:
             # Elastic Search output에서 intent가 chitchat인 경우
             if len(top3_outputs["scores"]) > 0:
-                if (
-                    top3_outputs["intent"][0].split(".")[0] == "chitchat"
-                    and top3_outputs["scores"][0] >= 8
-                ):
+                if top3_outputs["intent"][0].split(".")[0] == "chitchat" and top3_outputs["scores"][0] >= 8:
                     candidate_answer_templates = top3_outputs["answers"][0].split(",")
                     # 랜덤하게 answer template 선택
                     answer_template = random.choice(candidate_answer_templates)
                     # answer_template의 slot에 db 정보 채우기
-                    filled_answer_template = self.fill_answer_slot(
-                        answer_template, db_name, call_name
-                    )
+                    filled_answer_template = self.fill_answer_slot(answer_template, db_name, call_name)
                     return RetrieverOutput(
                         query=filled_answer_template,
                         bm25_score=top3_outputs["scores"][0],

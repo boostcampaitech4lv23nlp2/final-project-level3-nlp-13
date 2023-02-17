@@ -46,7 +46,7 @@ generator = Generator(config)
 # db = MongoDB()
 
 
-@app.post("/input", description="주문을 요청합니다")
+@app.post("/input", description="챗봇에게 말을 걸어보세요!")
 async def make_chat(data: User_input):
     time_log = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
     user_message = data.dict()["sentence"].lower()
@@ -54,6 +54,7 @@ async def make_chat(data: User_input):
     top_k = data.dict()["top_k"]
     top_p = data.dict()["top_p"]
 
+    is_gen = True
     # 스팸 필터링
     is_spam = spam_filter.sentences_predict(user_message)  # 1이면 스팸, 0이면 아님
     if is_spam:
@@ -64,6 +65,7 @@ async def make_chat(data: User_input):
         if retrieved.query is not None:
             my_reply = data_pipeline.correct_grammar(retrieved)
             score = retrieved.bm25_score
+            is_gen = False
         else:
             # 생성모델
             my_reply = generator.get_answer(user_message, 1, max_len, top_k, top_p)
@@ -82,4 +84,4 @@ async def make_chat(data: User_input):
     print(record)
     # db.insert_one(record)
 
-    return my_reply
+    return my_reply, is_gen
